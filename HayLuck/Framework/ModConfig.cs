@@ -6,6 +6,8 @@ namespace HayLuck.Framework
 {
     internal sealed class ModConfig
     {
+        public bool EnableMod { get; set; } = true;
+
         /// <summary>Minimum level of hay spread on the farm</summary>
         public int MinIterations { get; set; } = 3;
 

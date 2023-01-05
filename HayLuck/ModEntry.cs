@@ -1,11 +1,12 @@
 ﻿using HayLuck.Framework;
 using StardewModdingAPI;
+using StardewModdingAPI.Events;
 using StardewValley;
 using System;
 
 namespace HayLuck
 {
-    public class ModEntry : Mod
+    public partial class ModEntry : Mod
     {
         private ModConfig _config;
 
@@ -14,12 +15,16 @@ namespace HayLuck
             _config = helper.ReadConfig<ModConfig>();
             _config.EnsureArguments();
 
+            helper.Events.GameLoop.GameLaunched += OnGameLaunched;
             helper.Events.GameLoop.DayStarted += OnDayStarted;
             helper.Events.Input.ButtonsChanged += OnButtonsChanged;
         }
 
-        private void OnDayStarted(object sender, StardewModdingAPI.Events.DayStartedEventArgs e)
+        private void OnDayStarted(object sender, DayStartedEventArgs e)
         {
+            if (!_config.EnableMod)
+                return;
+
             if (!Context.IsWorldReady)
                 return;
 
@@ -65,6 +70,11 @@ namespace HayLuck
             _config = Helper.ReadConfig<ModConfig>();
             _config.EnsureArguments();
             Monitor.Log("Config reloaded", LogLevel.Info);
+        }
+
+        private void OnGameLaunched(object sender, GameLaunchedEventArgs e)
+        {
+            SetupGenericModMenu();
         }
     }
 }
