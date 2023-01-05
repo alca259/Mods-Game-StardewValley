@@ -1,0 +1,235 @@
+{
+    "Format": "1.23.0",
+    "Changes": [
+        {
+            "Action": "EditImage",
+            "Target": "Characters/Abigail",
+            "FromFile": "assets/Abigail.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/Alex",
+            "FromFile": "assets/Alex.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/Bouncer",
+            "FromFile": "assets/Bouncer.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/Caroline",
+            "FromFile": "assets/Caroline.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/Clint",
+            "FromFile": "assets/Clint.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/ClothesTherapyCharacters",
+            "FromFile": "assets/ClothesTherapyCharacters.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/Demetrius",
+            "FromFile": "assets/Demetrius.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/Demetrius_Beach",
+            "FromFile": "assets/Demetrius_Beach.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/Dwarf",
+            "FromFile": "assets/Dwarf.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/Elliott",
+            "FromFile": "assets/Elliott.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/Elliott_Beach",
+            "FromFile": "assets/Elliott_Beach.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/Emily",
+            "FromFile": "assets/Emily.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/Evelyn",
+            "FromFile": "assets/Evelyn.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/femaleRival",
+            "FromFile": "assets/femaleRival.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/Governor",
+            "FromFile": "assets/Governor.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/Gunther",
+            "FromFile": "assets/Gunther.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/Gus",
+            "FromFile": "assets/Gus.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/Haley",
+            "FromFile": "assets/Haley.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/Harvey",
+            "FromFile": "assets/Harvey.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/Harvey_Beach",
+            "FromFile": "assets/Harvey_Beach.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/Henchman",
+            "FromFile": "assets/Henchman.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/Jodi",
+            "FromFile": "assets/Jodi.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/Kent",
+            "FromFile": "assets/Kent.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/Leah",
+            "FromFile": "assets/Leah.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/LeahExMale",
+            "FromFile": "assets/LeahExMale.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/LeahExFemale",
+            "FromFile": "assets/LeahExFemale.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/Lewis",
+            "FromFile": "assets/Lewis.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/Lewis_Beach",
+            "FromFile": "assets/Lewis_Beach.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/Linus",
+            "FromFile": "assets/Linus.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/Marcello",
+            "FromFile": "assets/Marcello.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/Mariner",
+            "FromFile": "assets/Mariner.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/Marlon",
+            "FromFile": "assets/Marlon.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/Marnie",
+            "FromFile": "assets/Marnie.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/Maru",
+            "FromFile": "assets/Maru.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/Maru_Hospital",
+            "FromFile": "assets/Maru_Hospital.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/Morris",
+            "FromFile": "assets/Morris.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/ParrotBoy",
+            "FromFile": "assets/ParrotBoy.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/Sam",
+            "FromFile": "assets/Sam.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/Sam_Beach",
+            "FromFile": "assets/Sam_Beach.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/Sandy",
+            "FromFile": "assets/Sandy.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/Shane",
+            "FromFile": "assets/Shane.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/Shane_Beach",
+            "FromFile": "assets/Shane_Beach.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/Shane_JojaMart",
+            "FromFile": "assets/Shane_JojaMart.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/Vincent",
+            "FromFile": "assets/Vincent.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/WeddingOutfits",
+            "FromFile": "assets/WeddingOutfits.png"
+        },
+        {
+            "Action": "EditImage",
+            "Target": "Characters/Willy",
+            "FromFile": "assets/Willy.png"
+        }
+    ]
+}
