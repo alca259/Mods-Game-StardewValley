@@ -1,0 +1,10 @@
+{
+  "Name": "Botas de la guardia real",
+  "Description": "Forman parte del atuendo de la guardia real de Hyrule.",
+  "Price": 500,
+  "PurchasePrice": 5000,
+  "CanPurchase": true,
+  "PurchaseFrom": "Marlon",
+  "Defense": 10,
+  "Immunity": 10
+}

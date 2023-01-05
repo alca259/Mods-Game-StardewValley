@@ -1,0 +1,11 @@
+{
+   "Name": "Armor Boots for JsonAssets",
+   "Author": "Alca259",
+   "Version": "1.0.0",
+   "Description": "Better boots with armor.",
+   "UniqueID": "Alca259.ArmorBoots",
+   "UpdateKeys": [],
+   "ContentPackFor": {
+    	"UniqueID": "spacechase0.JsonAssets"
+    },
+}

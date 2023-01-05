@@ -1,0 +1,10 @@
+{
+  "Name": "Botas pesadas",
+  "Description": "Unas botas hechas de acero.",
+  "Price": 1000,
+  "PurchasePrice": 10000,
+  "CanPurchase": true,
+  "PurchaseFrom": "Marlon",
+  "Defense": 20,
+  "Immunity": 20
+}
