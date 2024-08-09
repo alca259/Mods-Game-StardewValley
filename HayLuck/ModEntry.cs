@@ -1,4 +1,5 @@
-﻿using HayLuck.Framework;
+﻿using Alca259.Common;
+using HayLuck.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
@@ -12,6 +13,7 @@ namespace HayLuck
 
         public override void Entry(IModHelper helper)
         {
+            CommonHelper.RemoveObsoleteFiles(this, "HayLuck.pdb");
             _config = helper.ReadConfig<ModConfig>();
             _config.EnsureArguments();
 
@@ -62,14 +64,6 @@ namespace HayLuck
             Game1.getFarm().growWeedGrass(num);
             Monitor.Log(string.Format("[{0}] Un nuevo día ha amanecido.", logSeasonName), LogLevel.Info);
             Monitor.Log(string.Format("Incrementado el nivel de hierba en {0}: {1}.", Game1.getFarm().Name, num), LogLevel.Info);
-
-            //foreach (var location in Game1.locations)
-            //{
-            //    if (location.IsFarm || location.IsGreenhouse || !location.IsOutdoors) continue;
-            //    num = random.Next(minValue, maxValue);
-            //    location.growWeedGrass(num);
-            //    Monitor.Log(string.Format("Incrementado el nivel de hierba en {0}: {1}.", location.Name, num), LogLevel.Debug);
-            //}
         }
 
         private void OnButtonsChanged(object sender, ButtonsChangedEventArgs e)

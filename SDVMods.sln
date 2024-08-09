@@ -9,9 +9,19 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "root", "root", "{6981FE88-C
 	ProjectSection(SolutionItems) = preProject
 		.gitattributes = .gitattributes
 		.gitignore = .gitignore
-		common.targets = common.targets
+		Directory.Build.props = Directory.Build.props
 		README.md = README.md
 	EndProjectSection
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "_Common", "_Common\_Common.shproj", "{98B203BA-0D08-4789-B857-E3143330AB64}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DurableFences", "DurableFences\DurableFences.csproj", "{1D5D1940-BB78-429E-BEB8-1E24055F3FC6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FishingMod", "FishingMod\FishingMod.csproj", "{32D03AE7-D56D-4F44-8346-1F114E8ED398}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HealthBars", "HealthBars\HealthBars.csproj", "{6E99468A-8B2F-47D6-BD52-468E80F724A7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RegenMod", "RegenMod\RegenMod.csproj", "{A78A957F-D003-44A3-ADB9-ED9754F192AF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,11 +33,35 @@ Global
 		{E388BF58-E64A-4331-B268-302BC875DF0B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E388BF58-E64A-4331-B268-302BC875DF0B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E388BF58-E64A-4331-B268-302BC875DF0B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1D5D1940-BB78-429E-BEB8-1E24055F3FC6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1D5D1940-BB78-429E-BEB8-1E24055F3FC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1D5D1940-BB78-429E-BEB8-1E24055F3FC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1D5D1940-BB78-429E-BEB8-1E24055F3FC6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{32D03AE7-D56D-4F44-8346-1F114E8ED398}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{32D03AE7-D56D-4F44-8346-1F114E8ED398}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{32D03AE7-D56D-4F44-8346-1F114E8ED398}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{32D03AE7-D56D-4F44-8346-1F114E8ED398}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6E99468A-8B2F-47D6-BD52-468E80F724A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6E99468A-8B2F-47D6-BD52-468E80F724A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6E99468A-8B2F-47D6-BD52-468E80F724A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6E99468A-8B2F-47D6-BD52-468E80F724A7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A78A957F-D003-44A3-ADB9-ED9754F192AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A78A957F-D003-44A3-ADB9-ED9754F192AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A78A957F-D003-44A3-ADB9-ED9754F192AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A78A957F-D003-44A3-ADB9-ED9754F192AF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {08666673-FC05-494F-97E2-E7FE52425065}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		_Common\_Common.projitems*{1d5d1940-bb78-429e-beb8-1e24055f3fc6}*SharedItemsImports = 5
+		_Common\_Common.projitems*{32d03ae7-d56d-4f44-8346-1f114e8ed398}*SharedItemsImports = 5
+		_Common\_Common.projitems*{6e99468a-8b2f-47d6-bd52-468e80f724a7}*SharedItemsImports = 5
+		_Common\_Common.projitems*{98b203ba-0d08-4789-b857-e3143330ab64}*SharedItemsImports = 13
+		_Common\_Common.projitems*{a78a957f-d003-44a3-adb9-ed9754f192af}*SharedItemsImports = 5
+		_Common\_Common.projitems*{e388bf58-e64a-4331-b268-302bc875df0b}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal
