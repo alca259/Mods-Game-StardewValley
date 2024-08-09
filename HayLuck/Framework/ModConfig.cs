@@ -1,27 +1,26 @@
-﻿using StardewModdingAPI.Utilities;
-using StardewModdingAPI;
+﻿using StardewModdingAPI;
+using StardewModdingAPI.Utilities;
 using System;
 
-namespace HayLuck.Framework
+namespace HayLuck.Framework;
+
+internal sealed class ModConfig
 {
-    internal sealed class ModConfig
+    public bool EnableMod { get; set; } = true;
+
+    /// <summary>Minimum level of hay spread on the farm</summary>
+    public int MinIterations { get; set; } = 3;
+
+    /// <summary>Maximum level of hay spread on the farm</summary>
+    public int MaxIterations { get; set; } = 5;
+
+    /// <summary>The keys which reload the mod config.</summary>
+    public KeybindList ReloadKey { get; set; } = new(SButton.F5);
+
+    public void EnsureArguments()
     {
-        public bool EnableMod { get; set; } = true;
-
-        /// <summary>Minimum level of hay spread on the farm</summary>
-        public int MinIterations { get; set; } = 3;
-
-        /// <summary>Maximum level of hay spread on the farm</summary>
-        public int MaxIterations { get; set; } = 5;
-
-        /// <summary>The keys which reload the mod config.</summary>
-        public KeybindList ReloadKey { get; set; } = new(SButton.F5);
-
-        public void EnsureArguments()
-        {
-            MinIterations = Math.Abs(MinIterations);
-            MaxIterations = Math.Abs(MaxIterations);
-            MaxIterations = MaxIterations < MinIterations ? MinIterations + 1 : MaxIterations;
-        }
+        MinIterations = Math.Abs(MinIterations);
+        MaxIterations = Math.Abs(MaxIterations);
+        MaxIterations = MaxIterations < MinIterations ? MinIterations + 1 : MaxIterations;
     }
 }

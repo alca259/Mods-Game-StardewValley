@@ -1,6 +1,6 @@
 ﻿using Alca259.Common;
 
-namespace HayLuck;
+namespace FishingMod;
 
 public partial class ModEntry
 {
