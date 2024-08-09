@@ -13,49 +13,40 @@ namespace FishingMod;
 /// <summary>The main entry point.</summary>
 public partial class ModEntry : Mod
 {
-    /*********
-    ** Properties
-    *********/
+    #region Fields
     /// <summary>The mod configuration.</summary>
-    private ModConfig Config;
-
+    private ModConfig _config;
     /// <summary>The current fishing bobber bar.</summary>
-    private readonly PerScreen<SBobberBar> Bobber = new();
-
+    private readonly PerScreen<SBobberBar> _bobber = new();
     /// <summary>Whether the player is in the fishing minigame.</summary>
-    private readonly PerScreen<bool> BeganFishingGame = new();
-
+    private readonly PerScreen<bool> _beganFishingGame = new();
     /// <summary>The number of ticks since the player opened the fishing minigame.</summary>
-    private readonly PerScreen<int> UpdateIndex = new();
+    private readonly PerScreen<int> _updateIndex = new();
+    #endregion
 
-
-    /*********
-    ** Public methods
-    *********/
+    #region Override entry point
     /// <summary>The mod entry point, called after the mod is first loaded.</summary>
     /// <param name="helper">Provides simplified APIs for writing mods.</param>
     public override void Entry(IModHelper helper)
     {
         CommonHelper.RemoveObsoleteFiles(this, "FishingMod.pdb");
 
-        Config = helper.ReadConfig<ModConfig>();
+        _config = helper.ReadConfig<ModConfig>();
 
         helper.Events.GameLoop.GameLaunched += OnGameLaunched;
         helper.Events.GameLoop.UpdateTicked += OnUpdateTicked;
         helper.Events.Display.MenuChanged += OnMenuChanged;
         helper.Events.Input.ButtonsChanged += OnButtonsChanged;
     }
+    #endregion
 
-
-    /*********
-    ** Private methods
-    *********/
+    #region Event handlers
     /// <summary>Raised after a game menu is opened, closed, or replaced.</summary>
     /// <param name="sender">The event sender.</param>
     /// <param name="e">The event arguments.</param>
     private void OnMenuChanged(object sender, MenuChangedEventArgs e)
     {
-        Bobber.Value = e.NewMenu is BobberBar menu
+        _bobber.Value = e.NewMenu is BobberBar menu
             ? new SBobberBar(menu, Helper.Reflection)
             : null;
     }
@@ -69,68 +60,68 @@ public partial class ModEntry : Mod
             return;
 
         // apply infinite bait/tackle
-        if (e.IsOneSecond && (Config.InfiniteBait || Config.InfiniteTackle) && Game1.player.CurrentTool is FishingRod rod)
+        if (e.IsOneSecond && (_config.InfiniteBait || _config.InfiniteTackle) && Game1.player.CurrentTool is FishingRod rod)
         {
-            if (Config.InfiniteBait && rod.attachments?.Length > 0 && rod.attachments[0] != null)
+            if (_config.InfiniteBait && rod.attachments?.Length > 0 && rod.attachments[0] != null)
                 rod.attachments[0].Stack = rod.attachments[0].maximumStackSize();
 
             // If the player has the iridium band, the tackle will be in the second slot
-            if (Config.InfiniteTackle && rod.attachments?.Length > 1 && rod.attachments[1] != null)
+            if (_config.InfiniteTackle && rod.attachments?.Length > 1 && rod.attachments[1] != null)
                 rod.attachments[1].uses.Value = 0;
 
             // If the player has the double iridium band, can have a second tackle in the third slot
-            if (Config.InfiniteTackle && rod.attachments?.Length > 2 && rod.attachments[2] != null)
+            if (_config.InfiniteTackle && rod.attachments?.Length > 2 && rod.attachments[2] != null)
                 rod.attachments[2].uses.Value = 0;
         }
 
         // apply fishing minigame changes
-        if (Game1.activeClickableMenu is BobberBar && Bobber.Value != null)
+        if (Game1.activeClickableMenu is BobberBar && _bobber.Value != null)
         {
-            SBobberBar bobber = Bobber.Value;
+            SBobberBar bobber = _bobber.Value;
 
             //Begin fishing game
-            if (!BeganFishingGame.Value && UpdateIndex.Value > 15)
+            if (!_beganFishingGame.Value && _updateIndex.Value > 15)
             {
                 //Do these things once per fishing minigame, 1/4 second after it updates
-                bobber.Difficulty *= Config.FishDifficultyMultiplier;
-                bobber.Difficulty += Config.FishDifficultyAdditive;
+                bobber.Difficulty *= _config.FishDifficultyMultiplier;
+                bobber.Difficulty += _config.FishDifficultyAdditive;
 
-                if (Config.AlwaysFindTreasure)
+                if (_config.AlwaysFindTreasure)
                     bobber.Treasure = true;
 
-                if (Config.InstantCatchFish)
+                if (_config.InstantCatchFish)
                 {
                     if (bobber.Treasure)
                         bobber.TreasureCaught = true;
                     bobber.DistanceFromCatching += 100;
                 }
 
-                if (Config.InstantCatchTreasure && (bobber.Treasure || Config.AlwaysFindTreasure))
+                if (_config.InstantCatchTreasure && (bobber.Treasure || _config.AlwaysFindTreasure))
                     bobber.TreasureCaught = true;
 
-                if (Config.EasierFishing)
+                if (_config.EasierFishing)
                 {
                     bobber.Difficulty = Math.Max(15, Math.Max(bobber.Difficulty, 60));
                     bobber.MotionType = 2;
                 }
 
-                BeganFishingGame.Value = true;
+                _beganFishingGame.Value = true;
             }
 
-            if (UpdateIndex.Value < 20)
-                UpdateIndex.Value++;
+            if (_updateIndex.Value < 20)
+                _updateIndex.Value++;
 
-            if (Config.AlwaysPerfect)
+            if (_config.AlwaysPerfect)
                 bobber.Perfect = true;
 
             if (!bobber.BobberInBar)
-                bobber.DistanceFromCatching += Config.LossAdditive;
+                bobber.DistanceFromCatching += _config.LossAdditive;
         }
         else
         {
             //End fishing game
-            BeganFishingGame.Value = false;
-            UpdateIndex.Value = 0;
+            _beganFishingGame.Value = false;
+            _updateIndex.Value = 0;
         }
     }
 
@@ -139,9 +130,9 @@ public partial class ModEntry : Mod
     /// <param name="e">The event arguments.</param>
     private void OnButtonsChanged(object sender, ButtonsChangedEventArgs e)
     {
-        if (Config.ReloadKey.JustPressed())
+        if (_config.ReloadKey.JustPressed())
         {
-            Config = Helper.ReadConfig<ModConfig>();
+            _config = Helper.ReadConfig<ModConfig>();
             Monitor.Log("Config reloaded", LogLevel.Info);
         }
     }
@@ -150,4 +141,5 @@ public partial class ModEntry : Mod
     {
         SetupGenericModMenu();
     }
+    #endregion
 }

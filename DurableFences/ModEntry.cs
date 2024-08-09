@@ -16,7 +16,7 @@ public class ModEntry : Mod
     public override void Entry(IModHelper helper)
     {
         CommonHelper.RemoveObsoleteFiles(this, "DurableFences.pdb");
-        helper.Events.GameLoop.DayStarted += this.OnDayStarted;
+        helper.Events.GameLoop.DayStarted += OnDayStarted;
     }
 
     private void OnDayStarted(object sender, DayStartedEventArgs e)

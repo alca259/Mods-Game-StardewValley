@@ -38,10 +38,10 @@ public class ModEntry : Mod
     {
         CommonHelper.RemoveObsoleteFiles(this, "RegenMod.pdb");
 
-        this.Config = helper.ReadConfig<ModConfig>();
+        Config = helper.ReadConfig<ModConfig>();
 
-        helper.Events.GameLoop.UpdateTicked += this.OnUpdateTicked;
-        helper.Events.Input.ButtonsChanged += this.OnButtonChanged;
+        helper.Events.GameLoop.UpdateTicked += OnUpdateTicked;
+        helper.Events.Input.ButtonsChanged += OnButtonChanged;
     }
 
 
@@ -53,10 +53,10 @@ public class ModEntry : Mod
     /// <param name="e">The event arguments.</param>
     private void OnButtonChanged(object sender, ButtonsChangedEventArgs e)
     {
-        if (this.Config.ReloadKey.JustPressed())
+        if (Config.ReloadKey.JustPressed())
         {
-            this.Config = this.Helper.ReadConfig<ModConfig>();
-            this.Monitor.Log("Config reloaded", LogLevel.Info);
+            Config = Helper.ReadConfig<ModConfig>();
+            Monitor.Log("Config reloaded", LogLevel.Info);
         }
     }
 
@@ -71,58 +71,58 @@ public class ModEntry : Mod
         SFarmer player = Game1.player;
 
         //detect movement or tool use
-        this.TimeSinceLastMoved.Value += Game1.currentGameTime.ElapsedGameTime.TotalMilliseconds;
+        TimeSinceLastMoved.Value += Game1.currentGameTime.ElapsedGameTime.TotalMilliseconds;
         if (player.timerSinceLastMovement == 0)
-            this.TimeSinceLastMoved.Value = 0;
+            TimeSinceLastMoved.Value = 0;
         if (player.UsingTool)
-            this.TimeSinceLastMoved.Value = 0;
+            TimeSinceLastMoved.Value = 0;
 
         // health regen
-        if (this.Config.RegenHealthConstant)
-            this.Health.Value += this.Config.RegenHealthConstantAmountPerSecond * this.ElapsedSeconds;
-        if (this.Config.RegenHealthStill)
+        if (Config.RegenHealthConstant)
+            Health.Value += Config.RegenHealthConstantAmountPerSecond * ElapsedSeconds;
+        if (Config.RegenHealthStill)
         {
-            if (this.TimeSinceLastMoved.Value > this.Config.RegenHealthStillTimeRequiredMS)
-                this.Health.Value += this.Config.RegenHealthStillAmountPerSecond * this.ElapsedSeconds;
+            if (TimeSinceLastMoved.Value > Config.RegenHealthStillTimeRequiredMS)
+                Health.Value += Config.RegenHealthStillAmountPerSecond * ElapsedSeconds;
         }
-        if (player.health + this.Health.Value >= player.maxHealth)
+        if (player.health + Health.Value >= player.maxHealth)
         {
             player.health = player.maxHealth;
-            this.Health.Value = 0;
+            Health.Value = 0;
         }
-        else if (this.Health.Value >= 1)
+        else if (Health.Value >= 1)
         {
             player.health += 1;
-            this.Health.Value -= 1;
+            Health.Value -= 1;
         }
-        else if (this.Health.Value <= -1)
+        else if (Health.Value <= -1)
         {
             player.health -= 1;
-            this.Health.Value += 1;
+            Health.Value += 1;
         }
 
         // stamina regen
-        if (this.Config.RegenStaminaConstant)
-            this.Stamina.Value += this.Config.RegenStaminaConstantAmountPerSecond * this.ElapsedSeconds;
-        if (this.Config.RegenStaminaStill)
+        if (Config.RegenStaminaConstant)
+            Stamina.Value += Config.RegenStaminaConstantAmountPerSecond * ElapsedSeconds;
+        if (Config.RegenStaminaStill)
         {
-            if (this.TimeSinceLastMoved.Value > this.Config.RegenStaminaStillTimeRequiredMS)
-                this.Stamina.Value += this.Config.RegenStaminaStillAmountPerSecond * this.ElapsedSeconds;
+            if (TimeSinceLastMoved.Value > Config.RegenStaminaStillTimeRequiredMS)
+                Stamina.Value += Config.RegenStaminaStillAmountPerSecond * ElapsedSeconds;
         }
-        if (player.Stamina + this.Stamina.Value >= player.MaxStamina)
+        if (player.Stamina + Stamina.Value >= player.MaxStamina)
         {
             player.Stamina = player.MaxStamina;
-            this.Stamina.Value = 0;
+            Stamina.Value = 0;
         }
-        else if (this.Stamina.Value >= 1)
+        else if (Stamina.Value >= 1)
         {
             player.Stamina += 1;
-            this.Stamina.Value -= 1;
+            Stamina.Value -= 1;
         }
-        else if (this.Stamina.Value <= -1)
+        else if (Stamina.Value <= -1)
         {
             player.Stamina -= 1;
-            this.Stamina.Value += 1;
+            Stamina.Value += 1;
         }
     }
 }

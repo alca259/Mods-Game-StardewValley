@@ -4,7 +4,7 @@ using StardewModdingAPI.Utilities;
 namespace FishingMod.Framework;
 
 /// <summary>The mod configuration.</summary>
-internal class ModConfig
+internal sealed class ModConfig
 {
     /// <summary>Whether the game should consider every catch to be perfectly executed, even if it wasn't.</summary>
     public bool AlwaysPerfect { get; set; }

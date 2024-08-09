@@ -43,25 +43,25 @@ internal class SBobberBar
     /// </summary>
     public float DistanceFromCatching
     {
-        get => this.DistanceFromCatchingField.GetValue();
-        set => this.DistanceFromCatchingField.SetValue(value);
+        get => DistanceFromCatchingField.GetValue();
+        set => DistanceFromCatchingField.SetValue(value);
     }
 
     public float Difficulty
     {
-        get => this.DifficultyField.GetValue();
-        set => this.DifficultyField.SetValue(value);
+        get => DifficultyField.GetValue();
+        set => DifficultyField.SetValue(value);
     }
 
     public int MotionType
     {
-        get => this.MotionTypeField.GetValue();
-        set => this.MotionTypeField.SetValue(value);
+        get => MotionTypeField.GetValue();
+        set => MotionTypeField.SetValue(value);
     }
 
     public bool BobberInBar
     {
-        get => this.BobberInBarField.GetValue();
+        get => BobberInBarField.GetValue();
     }
 
     /// <summary>
@@ -69,20 +69,20 @@ internal class SBobberBar
     /// </summary>
     public bool Treasure
     {
-        get => this.TreasureField.GetValue();
-        set => this.TreasureField.SetValue(value);
+        get => TreasureField.GetValue();
+        set => TreasureField.SetValue(value);
     }
 
     public bool TreasureCaught
     {
-        get => this.TreasureCaughtField.GetValue();
-        set => this.TreasureCaughtField.SetValue(value);
+        get => TreasureCaughtField.GetValue();
+        set => TreasureCaughtField.SetValue(value);
     }
 
     public bool Perfect
     {
-        get => this.PerfectField.GetValue();
-        set => this.PerfectField.SetValue(value);
+        get => PerfectField.GetValue();
+        set => PerfectField.SetValue(value);
     }
 
 
@@ -94,14 +94,14 @@ internal class SBobberBar
     /// <param name="reflection">Simplifies access to private code.</param>
     public SBobberBar(BobberBar instance, IReflectionHelper reflection)
     {
-        this.Instance = instance;
+        Instance = instance;
 
-        this.DistanceFromCatchingField = reflection.GetField<float>(instance, "distanceFromCatching");
-        this.DifficultyField = reflection.GetField<float>(instance, "difficulty");
-        this.MotionTypeField = reflection.GetField<int>(instance, "motionType");
-        this.BobberInBarField = reflection.GetField<bool>(instance, "bobberInBar");
-        this.TreasureField = reflection.GetField<bool>(instance, "treasure");
-        this.TreasureCaughtField = reflection.GetField<bool>(instance, "treasureCaught");
-        this.PerfectField = reflection.GetField<bool>(instance, "perfect");
+        DistanceFromCatchingField = reflection.GetField<float>(instance, "distanceFromCatching");
+        DifficultyField = reflection.GetField<float>(instance, "difficulty");
+        MotionTypeField = reflection.GetField<int>(instance, "motionType");
+        BobberInBarField = reflection.GetField<bool>(instance, "bobberInBar");
+        TreasureField = reflection.GetField<bool>(instance, "treasure");
+        TreasureCaughtField = reflection.GetField<bool>(instance, "treasureCaught");
+        PerfectField = reflection.GetField<bool>(instance, "perfect");
     }
 }
