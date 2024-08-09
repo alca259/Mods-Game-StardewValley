@@ -9,8 +9,12 @@ namespace HayLuck;
 
 public partial class ModEntry : Mod
 {
+    #region Fields
     private ModConfig _config;
+    #endregion
 
+    #region Override entry point
+    /// <inheritdoc/>
     public override void Entry(IModHelper helper)
     {
         CommonHelper.RemoveObsoleteFiles(this, "HayLuck.pdb");
@@ -21,7 +25,9 @@ public partial class ModEntry : Mod
         helper.Events.GameLoop.DayStarted += OnDayStarted;
         helper.Events.Input.ButtonsChanged += OnButtonsChanged;
     }
+    #endregion
 
+    #region Event Handlers
     private void OnDayStarted(object sender, DayStartedEventArgs e)
     {
         if (!_config.EnableMod)
@@ -79,4 +85,5 @@ public partial class ModEntry : Mod
     {
         SetupGenericModMenu();
     }
+    #endregion
 }
