@@ -75,7 +75,9 @@ public partial class ModEntry
             name: () => "Fish difficulty additive",
             tooltip: () => "A value added to the fish difficulty. This can be less than 0 to decrease difficulty, or more than 0 to increase it.",
             getValue: () => _config.FishDifficultyAdditive,
-            setValue: value => _config.FishDifficultyAdditive = value
+            setValue: value => _config.FishDifficultyAdditive = value,
+            min: -10,
+            max: 10
         );
 
         configMenu.AddNumberOption(
@@ -83,7 +85,9 @@ public partial class ModEntry
             name: () => "Loss additive",
             tooltip: () => "A value added to the initial fishing completion. For example, a value of 1 will instantly catch the fish.",
             getValue: () => _config.LossAdditive,
-            setValue: value => _config.LossAdditive = value
+            setValue: value => _config.LossAdditive = value,
+            min: 0,
+            max: 10
         );
 
         configMenu.AddBoolOption(
