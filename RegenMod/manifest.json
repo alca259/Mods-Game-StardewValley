@@ -1,10 +1,21 @@
 {
-  "Name": "Regen Mod",
-  "Author": "Zoryn",
-  "Version": "2.8.3",
-  "Description": "Lets the player regenerate health and stamina based on config values.",
+  /*
+   | This file is automatically updated by ModManifestBuilder
+   | when the project is compiled.
+   | 
+   | Changes made to this file may be overwritten.
+   | 
+   */
+  "$schema": "https://smapi.io/schemas/manifest.json",
   "UniqueID": "Zoryn.RegenMod",
-  "EntryDll": "RegenMod.dll",
+  "Name": "Regen Mod",
+  "Author": "Zoryn;Alca259",
+  "Version": "3.0.0",
+  "Description": "Lets the player regenerate health and stamina based on config values.",
   "MinimumApiVersion": "4.0.0",
-  "UpdateKeys": [ "GitHub:Zoryn4163/SMAPI-Mods" ]
+  "MinimumGameVersion": "1.6.8",
+  "EntryDll": "RegenMod.dll",
+  "UpdateKeys": [
+    "GitHub:alca259/Mods-Game-StardewValley"
+  ]
 }

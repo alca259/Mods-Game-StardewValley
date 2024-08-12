@@ -1,10 +1,21 @@
-﻿{
-    "Name": "HayLuck",
-    "Author": "Alca259",
-    "Version": "1.1.0",
-    "Description": "Allow to customize the level of spread of hay",
-    "UniqueID": "Alca259.HayLuck",
-    "EntryDll": "HayLuck.dll",
-    "MinimumApiVersion": "3.13.0",
-    "UpdateKeys": [ "GitHub:Alca259/Stardew-Valley-Mods" ]
+{
+  /*
+   | This file is automatically updated by ModManifestBuilder
+   | when the project is compiled.
+   | 
+   | Changes made to this file may be overwritten.
+   | 
+   */
+  "$schema": "https://smapi.io/schemas/manifest.json",
+  "UniqueID": "Alca259.HayLuck",
+  "Name": "HayLuck",
+  "Author": "Alca259",
+  "Version": "3.0.0",
+  "Description": "Allow to customize the level of spread of hay",
+  "MinimumApiVersion": "4.0.0",
+  "MinimumGameVersion": "1.6.8",
+  "EntryDll": "HayLuck.dll",
+  "UpdateKeys": [
+    "GitHub:alca259/Mods-Game-StardewValley"
+  ]
 }

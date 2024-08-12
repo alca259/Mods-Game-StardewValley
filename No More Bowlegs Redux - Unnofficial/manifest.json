@@ -2,9 +2,9 @@
     "Name": "No More Bowlegs Redux - unnofficial",
     "Author": "Scorcher",
     "Description": "Removes the awkward looking bowlegs from NPC sprites.",
-    "Version": "1.1.0",
+    "Version": "3.0.0",
     "UniqueID": "scorcher.bowlegs",
-    "UpdateKeys": [ "Nexus:8855", "GitHub:Alca259/Stardew-Valley-Mods" ],
+    "UpdateKeys": [ "Nexus:8855", "GitHub:alca259/Mods-Game-StardewValley" ],
     "ContentPackFor": {
         "UniqueID": "Pathoschild.ContentPatcher"
     }

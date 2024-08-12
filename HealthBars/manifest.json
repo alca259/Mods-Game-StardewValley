@@ -1,10 +1,21 @@
-﻿{
-  "Name": "Health Bars",
-  "Author": "Zoryn",
-  "Version": "2.8.3",
-  "Description": "Shows monster health bars.",
+{
+  /*
+   | This file is automatically updated by ModManifestBuilder
+   | when the project is compiled.
+   | 
+   | Changes made to this file may be overwritten.
+   | 
+   */
+  "$schema": "https://smapi.io/schemas/manifest.json",
   "UniqueID": "Zoryn.HealthBars",
-  "EntryDll": "HealthBars.dll",
+  "Name": "Health Bars",
+  "Author": "Zoryn;Alca259",
+  "Version": "3.0.0",
+  "Description": "Shows monster health bars.",
   "MinimumApiVersion": "4.0.0",
-  "UpdateKeys": [ "GitHub:Zoryn4163/SMAPI-Mods" ]
+  "MinimumGameVersion": "1.6.8",
+  "EntryDll": "HealthBars.dll",
+  "UpdateKeys": [
+    "GitHub:alca259/Mods-Game-StardewValley"
+  ]
 }
