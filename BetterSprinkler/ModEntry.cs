@@ -4,7 +4,9 @@ using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
+using StardewValley.Objects;
 using StardewValley.TerrainFeatures;
+using StardewValley.Tools;
 using SObject = StardewValley.Object;
 
 namespace BetterSprinklersPlus;
@@ -273,7 +275,7 @@ public class ModEntry : Mod
         }
     }
 
-    private void ActivateSprinkler(GameLocation location, Vector2 tile, SObject sprinkler)
+    private static void ActivateSprinkler(GameLocation location, Vector2 tile, SObject sprinkler)
     {
         var type = sprinkler.ParentSheetIndex;
         BetterSprinklersPlusConfig.Active.SprinklerShapes.TryGetValue(type, out var grid);
@@ -293,7 +295,7 @@ public class ModEntry : Mod
     /// <summary>
     /// Unwater all tiles
     /// </summary>
-    private void UnwaterAll()
+    private static void UnwaterAll()
     {
         foreach (var location in LocationHelper.GetAllBuildableLocations())
         {
@@ -315,7 +317,7 @@ public class ModEntry : Mod
     /// </summary>
     /// <param name="location">The location the tile is in</param>
     /// <param name="tile">The tile location</param>
-    private void WaterTile(GameLocation location, Vector2 tile)
+    private static void WaterTile(GameLocation location, Vector2 tile)
     {
         SetTileWateredValue(location, tile, HoeDirt.watered);
     }
@@ -325,7 +327,7 @@ public class ModEntry : Mod
     /// </summary>
     /// <param name="location">The location the tile is in</param>
     /// <param name="tile">The tile location</param>
-    private void UnwaterTile(GameLocation location, Vector2 tile)
+    private static void UnwaterTile(GameLocation location, Vector2 tile)
     {
         SetTileWateredValue(location, tile, HoeDirt.dry);
     }
@@ -338,21 +340,29 @@ public class ModEntry : Mod
     /// <param name="value">The value to set it to</param>
     private static void SetTileWateredValue(GameLocation location, Vector2 tile, int value)
     {
-        if (!location.terrainFeatures.TryGetValue(tile, out var terrainFeature))
+        if (location.terrainFeatures.TryGetValue(tile, out var terrainFeature))
         {
+            if (value != HoeDirt.dry && value != HoeDirt.watered)
+            {
+                Logger.Warn("Careful, setting the dirt state to something other than watered/dry is untested");
+                return;
+            }
+
+            if (terrainFeature.IsDirt())
+            {
+                var dirt = (HoeDirt)terrainFeature;
+                dirt.state.Value = value;
+            }
+
             return;
         }
 
-        if (value != HoeDirt.dry && value != HoeDirt.watered)
+        if (value == HoeDirt.watered && location.Objects.ContainsKey(tile) && location.IsPot(tile, out var pot) && pot != null)
         {
-            Logger.Warn("Careful, setting the dirt state to something other than watered/dry is untested");
-            return;
+            WateringCan wateringCan = new() { WaterLeft = 100 };
+            if (location.Objects.ContainsKey(tile))
+                location.Objects[tile].performToolAction(wateringCan);
         }
-
-        if (!terrainFeature.IsDirt()) return;
-
-        var dirt = (HoeDirt)terrainFeature;
-        dirt.state.Value = value;
     }
 
     private static int CalculateCost()

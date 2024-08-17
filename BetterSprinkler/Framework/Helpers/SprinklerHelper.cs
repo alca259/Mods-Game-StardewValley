@@ -1,6 +1,8 @@
 using Microsoft.Xna.Framework;
 using StardewValley;
+using StardewValley.Objects;
 using StardewValley.TerrainFeatures;
+using xTile.Tiles;
 using Object = StardewValley.Object;
 
 namespace BetterSprinklersPlus.Framework.Helpers;
@@ -187,7 +189,8 @@ public static class SprinklerHelper
     {
         Logger.Verbose($"ForAllTiles(sprinkler, {tile.X}x{tile.Y}, perform)");
         BetterSprinklersPlusConfig.Active.SprinklerShapes.TryGetValue(sprinkler.ParentSheetIndex, out var grid);
-        foreach (var coveredTile in GridHelper.GetAllTiles(tile, grid))
+        var tiles = GridHelper.GetAllTiles(tile, grid).ToList();
+        foreach (var coveredTile in tiles)
         {
             perform(coveredTile);
         }
@@ -216,6 +219,19 @@ public static class SprinklerHelper
     public static bool IsDirt(this TerrainFeature terrainFeature)
     {
         return terrainFeature is HoeDirt;
+    }
+
+    public static bool IsPot(this GameLocation location, Vector2 tile, out IndoorPot? pot)
+    {
+        if (!location.Objects.ContainsKey(tile))
+        {
+            pot = null;
+            return false;
+        }
+
+        var obj = location.getObjectAtTile((int)tile.X, (int)tile.Y);
+        pot = obj as IndoorPot;
+        return pot != null;
     }
 
     public static bool HasPressureNozzle(this Object sprinkler)
