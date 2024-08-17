@@ -6,7 +6,6 @@ using StardewModdingAPI.Utilities;
 using StardewValley;
 using StardewValley.Menus;
 using StardewValley.Tools;
-using System;
 
 namespace FishingMod;
 
@@ -44,7 +43,7 @@ public partial class ModEntry : Mod
     /// <summary>Raised after a game menu is opened, closed, or replaced.</summary>
     /// <param name="sender">The event sender.</param>
     /// <param name="e">The event arguments.</param>
-    private void OnMenuChanged(object sender, MenuChangedEventArgs e)
+    private void OnMenuChanged(object? sender, MenuChangedEventArgs e)
     {
         _bobber.Value = e.NewMenu is BobberBar menu
             ? new SBobberBar(menu, Helper.Reflection)
@@ -54,7 +53,7 @@ public partial class ModEntry : Mod
     /// <summary>Raised after the game state is updated (≈60 times per second).</summary>
     /// <param name="sender">The event sender.</param>
     /// <param name="e">The event arguments.</param>
-    private void OnUpdateTicked(object sender, UpdateTickedEventArgs e)
+    private void OnUpdateTicked(object? sender, UpdateTickedEventArgs e)
     {
         if (!Context.IsWorldReady)
             return;
@@ -128,7 +127,7 @@ public partial class ModEntry : Mod
     /// <inheritdoc cref="IInputEvents.ButtonsChanged"/>
     /// <param name="sender">The event sender.</param>
     /// <param name="e">The event arguments.</param>
-    private void OnButtonsChanged(object sender, ButtonsChangedEventArgs e)
+    private void OnButtonsChanged(object? sender, ButtonsChangedEventArgs e)
     {
         if (_config.ReloadKey.JustPressed())
         {
@@ -137,7 +136,7 @@ public partial class ModEntry : Mod
         }
     }
 
-    private void OnGameLaunched(object sender, GameLaunchedEventArgs e)
+    private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
     {
         SetupGenericModMenu();
     }

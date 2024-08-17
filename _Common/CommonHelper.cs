@@ -1,6 +1,4 @@
 using StardewModdingAPI;
-using System;
-using System.IO;
 
 namespace Alca259.Common;
 

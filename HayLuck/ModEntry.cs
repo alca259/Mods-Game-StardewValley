@@ -3,7 +3,6 @@ using HayLuck.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
-using System;
 
 namespace HayLuck;
 
@@ -28,7 +27,7 @@ public partial class ModEntry : Mod
     #endregion
 
     #region Event Handlers
-    private void OnDayStarted(object sender, DayStartedEventArgs e)
+    private void OnDayStarted(object? sender, DayStartedEventArgs e)
     {
         if (!_config.EnableMod)
             return;
@@ -72,7 +71,7 @@ public partial class ModEntry : Mod
         Monitor.Log(string.Format("Incrementado el nivel de hierba en {0}: {1}.", Game1.getFarm().Name, num), LogLevel.Info);
     }
 
-    private void OnButtonsChanged(object sender, ButtonsChangedEventArgs e)
+    private void OnButtonsChanged(object? sender, ButtonsChangedEventArgs e)
     {
         if (!_config.ReloadKey.JustPressed()) return;
 
@@ -81,7 +80,7 @@ public partial class ModEntry : Mod
         Monitor.Log("Config reloaded", LogLevel.Info);
     }
 
-    private void OnGameLaunched(object sender, GameLaunchedEventArgs e)
+    private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
     {
         SetupGenericModMenu();
     }

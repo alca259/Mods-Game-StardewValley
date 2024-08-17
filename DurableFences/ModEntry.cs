@@ -19,7 +19,7 @@ public class ModEntry : Mod
         helper.Events.GameLoop.DayStarted += OnDayStarted;
     }
 
-    private void OnDayStarted(object sender, DayStartedEventArgs e)
+    private void OnDayStarted(object? sender, DayStartedEventArgs e)
     {
         if (!Context.IsWorldReady) // ignore if not in-game
             return;
@@ -29,7 +29,7 @@ public class ModEntry : Mod
 
         foreach (GameLocation location in Game1.locations)
         {
-            foreach (Object obj in location.Objects.Values)
+            foreach (StardewValley.Object obj in location.Objects.Values)
             {
                 if (obj is Fence fence)
                     fence.health.Value = fence.maxHealth.Value;

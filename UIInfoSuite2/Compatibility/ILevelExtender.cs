@@ -2,6 +2,6 @@
 
 public interface ILevelExtender
 {
-  int[] CurrentXP();
-  int[] RequiredXP();
+    int[] CurrentXP();
+    int[] RequiredXP();
 }

@@ -25,7 +25,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RegenMod", "RegenMod\RegenM
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UIInfoSuite2", "UIInfoSuite2\UIInfoSuite2.csproj", "{1464D682-160C-46F6-A2A9-1E5EDC9398FA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BetterSprinklers", "BetterSprinkler\BetterSprinklers.csproj", "{EC4AC131-E3CC-4A01-B65B-595C21BE6E55}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BetterSprinklersPlus", "BetterSprinkler\BetterSprinklersPlus.csproj", "{5EC2C923-2FA3-488D-911B-308AAFB6A32C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -83,14 +83,14 @@ Global
 		{1464D682-160C-46F6-A2A9-1E5EDC9398FA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1464D682-160C-46F6-A2A9-1E5EDC9398FA}.Release|x86.ActiveCfg = Release|Any CPU
 		{1464D682-160C-46F6-A2A9-1E5EDC9398FA}.Release|x86.Build.0 = Release|Any CPU
-		{EC4AC131-E3CC-4A01-B65B-595C21BE6E55}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{EC4AC131-E3CC-4A01-B65B-595C21BE6E55}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{EC4AC131-E3CC-4A01-B65B-595C21BE6E55}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{EC4AC131-E3CC-4A01-B65B-595C21BE6E55}.Debug|x86.Build.0 = Debug|Any CPU
-		{EC4AC131-E3CC-4A01-B65B-595C21BE6E55}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{EC4AC131-E3CC-4A01-B65B-595C21BE6E55}.Release|Any CPU.Build.0 = Release|Any CPU
-		{EC4AC131-E3CC-4A01-B65B-595C21BE6E55}.Release|x86.ActiveCfg = Release|Any CPU
-		{EC4AC131-E3CC-4A01-B65B-595C21BE6E55}.Release|x86.Build.0 = Release|Any CPU
+		{5EC2C923-2FA3-488D-911B-308AAFB6A32C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5EC2C923-2FA3-488D-911B-308AAFB6A32C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5EC2C923-2FA3-488D-911B-308AAFB6A32C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{5EC2C923-2FA3-488D-911B-308AAFB6A32C}.Debug|x86.Build.0 = Debug|Any CPU
+		{5EC2C923-2FA3-488D-911B-308AAFB6A32C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5EC2C923-2FA3-488D-911B-308AAFB6A32C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5EC2C923-2FA3-488D-911B-308AAFB6A32C}.Release|x86.ActiveCfg = Release|Any CPU
+		{5EC2C923-2FA3-488D-911B-308AAFB6A32C}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -102,10 +102,10 @@ Global
 		_Common\_Common.projitems*{1464d682-160c-46f6-a2a9-1e5edc9398fa}*SharedItemsImports = 5
 		_Common\_Common.projitems*{1d5d1940-bb78-429e-beb8-1e24055f3fc6}*SharedItemsImports = 5
 		_Common\_Common.projitems*{32d03ae7-d56d-4f44-8346-1f114e8ed398}*SharedItemsImports = 5
+		_Common\_Common.projitems*{5ec2c923-2fa3-488d-911b-308aafb6a32c}*SharedItemsImports = 5
 		_Common\_Common.projitems*{6e99468a-8b2f-47d6-bd52-468e80f724a7}*SharedItemsImports = 5
 		_Common\_Common.projitems*{98b203ba-0d08-4789-b857-e3143330ab64}*SharedItemsImports = 13
 		_Common\_Common.projitems*{a78a957f-d003-44a3-adb9-ed9754f192af}*SharedItemsImports = 5
 		_Common\_Common.projitems*{e388bf58-e64a-4331-b268-302bc875df0b}*SharedItemsImports = 5
-		_Common\_Common.projitems*{ec4ac131-e3cc-4a01-b65b-595c21be6e55}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal

@@ -16,9 +16,10 @@
 
     <GamePath>F:\SteamLibrary\steamapps\common\Stardew Valley</GamePath>
     <TargetFramework>net6.0</TargetFramework>
-	<Nullable>enable</Nullable>
-	<EnableHarmony>true</EnableHarmony>
-	<TranslationClassBuilder_AddGetByKey>true</TranslationClassBuilder_AddGetByKey>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <EnableHarmony>true</EnableHarmony>
+    <TranslationClassBuilder_AddGetByKey>true</TranslationClassBuilder_AddGetByKey>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <ModZipPath>$(SolutionDir)_releases</ModZipPath>
   </PropertyGroup>
@@ -27,14 +28,14 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DebugType>full</DebugType>
-    <ModZipPath>$(SolutionDir)\DebugBuilds</ModZipPath>
+    <ModZipPath>$(SolutionDir)_debug_builds</ModZipPath>
   </PropertyGroup>
 
   <!-- mod build package -->
   <ItemGroup>
     <PackageReference Include="Leclair.Stardew.ModManifestBuilder" Version="2.3.1" />
     <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.1.1" />
-	<PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.0.1"/>
+    <PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.0.1"/>
   </ItemGroup>
 
 </Project>

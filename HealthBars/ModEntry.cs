@@ -43,7 +43,7 @@ public partial class ModEntry : Mod
     /// <inheritdoc cref="IDisplayEvents.RenderedWorld"/>
     /// <param name="sender">The event sender.</param>
     /// <param name="e">The event arguments.</param>
-    private void OnRenderedWorld(object sender, RenderedWorldEventArgs e)
+    private void OnRenderedWorld(object? sender, RenderedWorldEventArgs e)
     {
         if (!Context.IsWorldReady)
             return;
@@ -61,7 +61,7 @@ public partial class ModEntry : Mod
     /// <inheritdoc cref="IInputEvents.ButtonsChanged"/>
     /// <param name="sender">The event sender.</param>
     /// <param name="e">The event arguments.</param>
-    private void OnButtonsChanged(object sender, ButtonsChangedEventArgs e)
+    private void OnButtonsChanged(object? sender, ButtonsChangedEventArgs e)
     {
         if (_config.ReloadKey.JustPressed())
         {
@@ -70,7 +70,7 @@ public partial class ModEntry : Mod
         }
     }
 
-    private void OnGameLaunched(object sender, GameLaunchedEventArgs e)
+    private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
     {
         SetupGenericModMenu();
     }

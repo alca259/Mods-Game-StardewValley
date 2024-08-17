@@ -23,7 +23,7 @@ public partial class ModEntry : Mod
     #endregion
 
     #region Properties
-    private float ElapsedSeconds => (float)(Game1.currentGameTime.ElapsedGameTime.TotalMilliseconds / 1000);
+    private static float ElapsedSeconds => (float)(Game1.currentGameTime.ElapsedGameTime.TotalMilliseconds / 1000);
     #endregion
 
     #region Override entry point
@@ -45,7 +45,7 @@ public partial class ModEntry : Mod
     /// <inheritdoc cref="IInputEvents.ButtonsChanged"/>
     /// <param name="sender">The event sender.</param>
     /// <param name="e">The event arguments.</param>
-    private void OnButtonChanged(object sender, ButtonsChangedEventArgs e)
+    private void OnButtonChanged(object? sender, ButtonsChangedEventArgs e)
     {
         if (_config.ReloadKey.JustPressed())
         {
@@ -57,7 +57,7 @@ public partial class ModEntry : Mod
     /// <summary>Raised after the game state is updated (≈60 times per second).</summary>
     /// <param name="sender">The event sender.</param>
     /// <param name="e">The event arguments.</param>
-    private void OnUpdateTicked(object sender, UpdateTickedEventArgs e)
+    private void OnUpdateTicked(object? sender, UpdateTickedEventArgs e)
     {
         if (!Context.IsWorldReady || Game1.paused || Game1.activeClickableMenu != null)
             return;
@@ -83,7 +83,7 @@ public partial class ModEntry : Mod
         StaminaRegenTick(player);
     }
 
-    private void OnGameLaunched(object sender, GameLaunchedEventArgs e)
+    private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
     {
         SetupGenericModMenu();
     }

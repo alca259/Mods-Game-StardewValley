@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
@@ -15,138 +12,138 @@ namespace UIInfoSuite2.UIElements;
 
 internal class ShowCalendarAndBillboardOnGameMenuButton : IDisposable
 {
-#region Properties
-  private readonly PerScreen<ClickableTextureComponent> _showBillboardButton = new(
-    () => new ClickableTextureComponent(
-      new Rectangle(0, 0, 99, 60),
-      Game1.content.Load<Texture2D>(Path.Combine("Maps", "summer_town")),
-      new Rectangle(122, 291, 35, 20),
-      3f
-    )
-  );
+    #region Properties
+    private readonly PerScreen<ClickableTextureComponent> _showBillboardButton = new(
+      () => new ClickableTextureComponent(
+        new Rectangle(0, 0, 99, 60),
+        Game1.content.Load<Texture2D>(Path.Combine("Maps", "summer_town")),
+        new Rectangle(122, 291, 35, 20),
+        3f
+      )
+    );
 
-  private readonly IModHelper _helper;
+    private readonly IModHelper _helper;
 
-  private readonly PerScreen<Item> _hoverItem = new();
-  private readonly PerScreen<Item> _heldItem = new();
-#endregion
+    private readonly PerScreen<Item> _hoverItem = new();
+    private readonly PerScreen<Item> _heldItem = new();
+    #endregion
 
-#region Lifecycle
-  public ShowCalendarAndBillboardOnGameMenuButton(IModHelper helper)
-  {
-    _helper = helper;
-  }
-
-  public void Dispose()
-  {
-    ToggleOption(false);
-  }
-
-  public void ToggleOption(bool showCalendarAndBillboard)
-  {
-    ModEntry.RegisterCalendarAndQuestKeyBindings(_helper, showCalendarAndBillboard);
-
-    _helper.Events.Display.RenderedActiveMenu -= OnRenderedActiveMenu;
-    _helper.Events.Input.ButtonPressed -= OnButtonPressed;
-    _helper.Events.GameLoop.UpdateTicked -= OnUpdateTicked;
-
-    if (showCalendarAndBillboard)
+    #region Lifecycle
+    public ShowCalendarAndBillboardOnGameMenuButton(IModHelper helper)
     {
-      _helper.Events.Display.RenderedActiveMenu += OnRenderedActiveMenu;
-      _helper.Events.Input.ButtonPressed += OnButtonPressed;
-      _helper.Events.GameLoop.UpdateTicked += OnUpdateTicked;
+        _helper = helper;
     }
-  }
-#endregion
 
-
-#region Event subscriptions
-  private void OnUpdateTicked(object sender, EventArgs e)
-  {
-    // Get hovered and hold item
-    _hoverItem.Value = Tools.GetHoveredItem();
-    if (Game1.activeClickableMenu is GameMenu gameMenu)
+    public void Dispose()
     {
-      List<IClickableMenu> menuList = gameMenu.pages;
-
-      if (menuList[0] is InventoryPage inventory)
-      {
-        _heldItem.Value = Game1.player.CursorSlotItem;
-      }
+        ToggleOption(false);
     }
-  }
 
-  private void OnButtonPressed(object sender, ButtonPressedEventArgs e)
-  {
-    if (e.Button == SButton.MouseLeft)
+    public void ToggleOption(bool showCalendarAndBillboard)
     {
-      ActivateBillboard();
+        ModEntry.RegisterCalendarAndQuestKeyBindings(_helper, showCalendarAndBillboard);
+
+        _helper.Events.Display.RenderedActiveMenu -= OnRenderedActiveMenu;
+        _helper.Events.Input.ButtonPressed -= OnButtonPressed;
+        _helper.Events.GameLoop.UpdateTicked -= OnUpdateTicked;
+
+        if (showCalendarAndBillboard)
+        {
+            _helper.Events.Display.RenderedActiveMenu += OnRenderedActiveMenu;
+            _helper.Events.Input.ButtonPressed += OnButtonPressed;
+            _helper.Events.GameLoop.UpdateTicked += OnUpdateTicked;
+        }
     }
-    else if (e.Button == SButton.ControllerA)
+    #endregion
+
+
+    #region Event subscriptions
+    private void OnUpdateTicked(object sender, EventArgs e)
     {
-      ActivateBillboard();
-    }
-  }
+        // Get hovered and hold item
+        _hoverItem.Value = Tools.GetHoveredItem();
+        if (Game1.activeClickableMenu is GameMenu gameMenu)
+        {
+            List<IClickableMenu> menuList = gameMenu.pages;
 
-  private void OnRenderedActiveMenu(object sender, EventArgs e)
-  {
-    if (_hoverItem.Value == null &&
-        Game1.activeClickableMenu is GameMenu gameMenu &&
-        gameMenu.currentTab == 0 &&
-        _heldItem.Value == null)
+            if (menuList[0] is InventoryPage inventory)
+            {
+                _heldItem.Value = Game1.player.CursorSlotItem;
+            }
+        }
+    }
+
+    private void OnButtonPressed(object sender, ButtonPressedEventArgs e)
     {
-      DrawBillboard();
+        if (e.Button == SButton.MouseLeft)
+        {
+            ActivateBillboard();
+        }
+        else if (e.Button == SButton.ControllerA)
+        {
+            ActivateBillboard();
+        }
     }
-  }
-#endregion
 
-
-#region Logic
-  private void DrawBillboard()
-  {
-    ClickableTextureComponent billboardButton = _showBillboardButton.Value;
-    billboardButton.bounds.X = Game1.activeClickableMenu.xPositionOnScreen + Game1.activeClickableMenu.width - 160;
-    billboardButton.bounds.Y = Game1.activeClickableMenu.yPositionOnScreen +
-                               Game1.activeClickableMenu.height -
-                               // For compatiblity with BiggerBackpack mod
-                               (_helper.ModRegistry.IsLoaded("spacechase0.BiggerBackpack") ? 230 : 300);
-
-    _showBillboardButton.Value = billboardButton;
-    _showBillboardButton.Value.draw(Game1.spriteBatch);
-
-    // Draw the mouse again to display it over the billboard
-    Game1.activeClickableMenu.drawMouse(Game1.spriteBatch);
-
-    if (_showBillboardButton.Value.containsPoint(Game1.getMouseX(), Game1.getMouseY()))
+    private void OnRenderedActiveMenu(object sender, EventArgs e)
     {
-      string hoverText = Game1.getMouseX() <
-                         _showBillboardButton.Value.bounds.X + _showBillboardButton.Value.bounds.Width / 2
-        ? LanguageKeys.Calendar
-        : LanguageKeys.Billboard;
-      IClickableMenu.drawHoverText(Game1.spriteBatch, _helper.SafeGetString(hoverText), Game1.dialogueFont);
+        if (_hoverItem.Value == null &&
+            Game1.activeClickableMenu is GameMenu gameMenu &&
+            gameMenu.currentTab == 0 &&
+            _heldItem.Value == null)
+        {
+            DrawBillboard();
+        }
     }
-  }
+    #endregion
 
-  private void ActivateBillboard()
-  {
-    if (Game1.activeClickableMenu is GameMenu gameMenu &&
-        gameMenu.currentTab == 0 &&
-        _heldItem.Value == null &&
-        _showBillboardButton.Value.containsPoint(
-          (int)Utility.ModifyCoordinateForUIScale(Game1.getMouseX()),
-          (int)Utility.ModifyCoordinateForUIScale(Game1.getMouseY())
-        ))
+
+    #region Logic
+    private void DrawBillboard()
     {
-      if (Game1.questOfTheDay != null && string.IsNullOrEmpty(Game1.questOfTheDay.currentObjective))
-      {
-        Game1.questOfTheDay.currentObjective = "wat?";
-      }
+        ClickableTextureComponent billboardButton = _showBillboardButton.Value;
+        billboardButton.bounds.X = Game1.activeClickableMenu.xPositionOnScreen + Game1.activeClickableMenu.width - 160;
+        billboardButton.bounds.Y = Game1.activeClickableMenu.yPositionOnScreen +
+                                   Game1.activeClickableMenu.height -
+                                   // For compatiblity with BiggerBackpack mod
+                                   (_helper.ModRegistry.IsLoaded("spacechase0.BiggerBackpack") ? 230 : 300);
 
-      Game1.activeClickableMenu = new Billboard(
-        !(Utility.ModifyCoordinateForUIScale(Game1.getMouseX()) <
-          _showBillboardButton.Value.bounds.X + _showBillboardButton.Value.bounds.Width / 2)
-      );
+        _showBillboardButton.Value = billboardButton;
+        _showBillboardButton.Value.draw(Game1.spriteBatch);
+
+        // Draw the mouse again to display it over the billboard
+        Game1.activeClickableMenu.drawMouse(Game1.spriteBatch);
+
+        if (_showBillboardButton.Value.containsPoint(Game1.getMouseX(), Game1.getMouseY()))
+        {
+            string hoverText = Game1.getMouseX() <
+                               _showBillboardButton.Value.bounds.X + _showBillboardButton.Value.bounds.Width / 2
+              ? LanguageKeys.Calendar
+              : LanguageKeys.Billboard;
+            IClickableMenu.drawHoverText(Game1.spriteBatch, _helper.SafeGetString(hoverText), Game1.dialogueFont);
+        }
     }
-  }
-#endregion
+
+    private void ActivateBillboard()
+    {
+        if (Game1.activeClickableMenu is GameMenu gameMenu &&
+            gameMenu.currentTab == 0 &&
+            _heldItem.Value == null &&
+            _showBillboardButton.Value.containsPoint(
+              (int)Utility.ModifyCoordinateForUIScale(Game1.getMouseX()),
+              (int)Utility.ModifyCoordinateForUIScale(Game1.getMouseY())
+            ))
+        {
+            if (Game1.questOfTheDay != null && string.IsNullOrEmpty(Game1.questOfTheDay.currentObjective))
+            {
+                Game1.questOfTheDay.currentObjective = "wat?";
+            }
+
+            Game1.activeClickableMenu = new Billboard(
+              !(Utility.ModifyCoordinateForUIScale(Game1.getMouseX()) <
+                _showBillboardButton.Value.bounds.X + _showBillboardButton.Value.bounds.Width / 2)
+            );
+        }
+    }
+    #endregion
 }

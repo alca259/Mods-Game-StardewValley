@@ -10,7 +10,7 @@
   "UniqueID": "Zoryn.HealthBars",
   "Name": "Health Bars",
   "Author": "Zoryn;Alca259",
-  "Version": "3.0.0",
+  "Version": "3.0.0-Debug",
   "Description": "Shows monster health bars.",
   "MinimumApiVersion": "4.0.0",
   "MinimumGameVersion": "1.6.8",

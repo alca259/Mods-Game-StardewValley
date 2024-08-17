@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewValley;
 
@@ -7,8 +6,8 @@ namespace UIInfoSuite2.Infrastructure.Extensions;
 
 public static class ObjectExtensions
 {
-#region Properties
-  private static readonly Dictionary<string, int> NpcHeadShotSize = new()
+    #region Properties
+    private static readonly Dictionary<string, int> NpcHeadShotSize = new()
   {
     { "Piere", 9 },
     { "Sebastian", 7 },
@@ -45,31 +44,31 @@ public static class ObjectExtensions
     { "Clint", 10 },
     { "Willy", 10 }
   };
-#endregion
+    #endregion
 
-  public static Rectangle GetHeadShot(this NPC npc)
-  {
-    int size;
-    if (!NpcHeadShotSize.TryGetValue(npc.Name, out size))
+    public static Rectangle GetHeadShot(this NPC npc)
     {
-      size = 4;
+        int size;
+        if (!NpcHeadShotSize.TryGetValue(npc.Name, out size))
+        {
+            size = 4;
+        }
+
+        Rectangle mugShotSourceRect = npc.getMugShotSourceRect();
+        mugShotSourceRect.Height -= size / 2;
+        mugShotSourceRect.Y -= size / 2;
+        return mugShotSourceRect;
     }
 
-    Rectangle mugShotSourceRect = npc.getMugShotSourceRect();
-    mugShotSourceRect.Height -= size / 2;
-    mugShotSourceRect.Y -= size / 2;
-    return mugShotSourceRect;
-  }
-
-  public static string SafeGetString(this IModHelper helper, string key)
-  {
-    var result = string.Empty;
-
-    if (!string.IsNullOrEmpty(key) && helper != null)
+    public static string SafeGetString(this IModHelper helper, string key)
     {
-      result = helper.Translation.Get(key);
-    }
+        var result = string.Empty;
 
-    return result;
-  }
+        if (!string.IsNullOrEmpty(key) && helper != null)
+        {
+            result = helper.Translation.Get(key);
+        }
+
+        return result;
+    }
 }
