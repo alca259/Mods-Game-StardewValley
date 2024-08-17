@@ -1,3 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\_Common\_Common.projitems" Label="Shared" />
+  <ItemGroup>
+    <None Remove="i18n\es.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Include="i18n\es.json" />
+  </ItemGroup>
 </Project>

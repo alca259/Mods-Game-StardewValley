@@ -9,24 +9,24 @@ public class BetterSprinklersPlusConfig
 {
     public enum BalancedModeOptions
     {
-        Off,
-        Easy,
-        Normal,
-        Hard,
-        VeryHard,
+        Off = 0,
+        Easy = 1,
+        Normal = 2,
+        Hard = 3,
+        VeryHard = 4,
     }
 
     public enum CannotAffordOptions
     {
-        Off,
-        DoNotWater,
+        Off = 0,
+        DoNotWater = 1,
     }
 
     public enum DefaultTilesOptions
     {
-        CostMoney,
-        AreFree,
-        SameNumberAreFree,
+        CostMoney = 0,
+        AreFree = 1,
+        SameNumberAreFree = 2,
     }
 
     public static readonly string[] RangeAllowedValues = {
@@ -46,7 +46,7 @@ public class BetterSprinklersPlusConfig
         "Easy",
         "Normal",
         "Hard",
-        "Very Hard",
+        "VeryHard",
     };
 
     private static string[] SprinklerCooldownAllowedValues => new string[]
@@ -69,14 +69,14 @@ public class BetterSprinklersPlusConfig
     private static string[] CannotAffordOptionsText => new string[]
     {
         "Off",
-        "Don't Water",
+        "DontWater",
     };
 
     private static string[] DefaultTilesOptionsText => new string[]
     {
-        "Cost Money",
-        "Are Free",
-        "Same Number are Free",
+        "CostMoney",
+        "AreFree",
+        "SameNumberAreFree",
     };
 
     public static BetterSprinklersPlusConfig Active { get; set; }
@@ -238,7 +238,7 @@ public class BetterSprinklersPlusConfig
               catch (Exception exception)
               {
                   Logger.Error($"Error Getting Balanced Mode option {Active.BalancedMode}: {exception.Message}");
-                  return "Off";
+                  return BalancedModeOptionsText[0];
               }
           },
           setValue: value =>
@@ -255,7 +255,8 @@ public class BetterSprinklersPlusConfig
                   Active.BalancedMode = (int)BalancedModeOptions.Off;
               }
           },
-          allowedValues: BalancedModeOptionsText
+          allowedValues: BalancedModeOptionsText,
+          formatAllowedValue: v => I18n.GetByKey($"Config.Balance.BalancedMode.Values.{v}").Default(v).ToString()
         );
 
         configMenu.AddTextOption(
@@ -271,7 +272,7 @@ public class BetterSprinklersPlusConfig
               catch (Exception exception)
               {
                   Logger.Error($"Error Getting Can't Afford option {Active.CannotAfford}: {exception.Message}");
-                  return "Off";
+                  return CannotAffordOptionsText[0];
               }
           },
           setValue: value =>
@@ -288,7 +289,8 @@ public class BetterSprinklersPlusConfig
                   Active.CannotAfford = (int)CannotAffordOptions.Off;
               }
           },
-          allowedValues: CannotAffordOptionsText
+          allowedValues: CannotAffordOptionsText,
+          formatAllowedValue: v => I18n.GetByKey($"Config.Balance.CannotAfford.Values.{v}").Default(v).ToString()
         );
 
         configMenu.AddTextOption(
@@ -299,7 +301,7 @@ public class BetterSprinklersPlusConfig
           {
               try
               {
-                  return DefaultTilesOptionsText[Active.DefaultTiles] ?? DefaultTilesOptionsText[0];
+                  return DefaultTilesOptionsText[Active.DefaultTiles] ?? "CostMoney";
               }
               catch (Exception exception)
               {
@@ -321,7 +323,8 @@ public class BetterSprinklersPlusConfig
                   Active.CannotAfford = (int)CannotAffordOptions.Off;
               }
           },
-          allowedValues: DefaultTilesOptionsText
+          allowedValues: DefaultTilesOptionsText,
+          formatAllowedValue: v => I18n.GetByKey($"Config.Balance.DefaultTiles.Values.{v}").Default(v).ToString()
         );
 
         configMenu.AddBoolOption(
