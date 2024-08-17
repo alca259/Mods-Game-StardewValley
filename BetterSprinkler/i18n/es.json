@@ -1,0 +1,37 @@
+{
+  "Sprinkler.IsInCooldown": "No se puede activar el aspersor, está en enfriamiento",
+  "Sprinkler.Activated": "Aspersor activado",
+  "Sprinkler.ActivatedWithCost": "Aspersor activado ({0}o)",
+  "Sprinkler.CostTooHigh": "No se puede activar el aspersor, costará demasiado ({0}o)",
+  "Sprinkler.Run": "Tus aspersores han funcionado.",
+  "Sprinkler.RunWithCost": "Tus aspersores han funcionado ({0}o).",
+  "Sprinkler.CantAfford": "No pudiste permitirte activar tus aspersores hoy ({0}o).",
+
+  "Config.Balance.Title": "Balance:",
+  "Config.Balance.BalancedMode.Title": "Modo",
+  "Config.Balance.BalancedMode.Tooltip": "Cambia la cantidad que cuesta el agua.",
+  "Config.Balance.CannotAfford.Title": "No se puede pagar",
+  "Config.Balance.CannotAfford.Tooltip": "Qué hacer cuando no puedes pagar el costo",
+  "Config.Balance.DefaultTiles.Title": "Casillas predeterminados",
+  "Config.Balance.DefaultTiles.Tooltip": "¿Qué deben hacer las casillas predeterminadas?",
+  "Config.Balance.BalancedModeCostMessage.Title": "Mostrar mensaje de facturas",
+  "Config.Balance.BalancedModeCostMessage.Tooltip": "Por la mañana verás cuánto han costado tus aspersores.",
+  "Config.Balance.BalancedModeCannotAffordWarning.Title": "Mostrar advertencia de no se puede pagar",
+  "Config.Balance.BalancedModeCannotAffordWarning.Tooltip": "Por la mañana se te advertirá si el riego no se completó.",
+
+  "Config.Options.Title": "Opciones:",
+  "Config.Options.BasicSprinklerRange.Title": "Rango de aspersor básico",
+  "Config.Options.QualitySprinklerRange.Title": "Rango de aspersor de calidad",
+  "Config.Options.IridiumSprinklerRange.Title": "Rango de aspersor de iridio",
+  "Config.Options.OverlayEnabledOnPlace.Title": "Mostrar cobertura de riego",
+  "Config.Options.OverlayEnabledOnPlace.Tooltip": "Cuando está marcado, la superposición muestra el alcance del aspersor/espantapájaros al colocar.",
+  "Config.Options.SprinklerCooldown.Title": "Enfriamiento del aspersor (segundos)",
+
+  "Config.KeyBindings.Title": "Asignación de teclas:",
+  "Config.KeyBindings.ActivateKey.Title": "Botón de activación",
+  "Config.KeyBindings.ActivateKey.Tooltip": "El botón para presionar para activar un aspersor",
+  "Config.KeyBindings.ShowSprinklerEditKey.Title": "Mostrar tecla de configuración",
+  "Config.KeyBindings.ShowSprinklerEditKey.Tooltip": "La tecla para presionar para cambiar el límite de todos los aspersores",
+  "Config.KeyBindings.ShowOverlayKey.Title": "Mostrar tecla de superposición",
+  "Config.KeyBindings.ShowOverlayKey.Tooltip": "La tecla para presionar para mostrar el límite del aspersor/espantapájaros resaltado"
+}

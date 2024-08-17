@@ -40,7 +40,7 @@ public class BetterSprinklersPlusConfig
     /// <summary>The maximum grid size. This one is Scarecrow grids</summary>
     public const int ScarecrowGridSize = 19;
 
-    private static readonly string[] BalancedModeOptionsText =
+    private static string[] BalancedModeOptionsText => new string[]
     {
         "Off",
         "Easy",
@@ -49,14 +49,15 @@ public class BetterSprinklersPlusConfig
         "Very Hard",
     };
 
-    private static readonly string[] SprinklerCooldownAllowedValues = {
+    private static string[] SprinklerCooldownAllowedValues => new string[]
+    {
         "30",
         "60",
         "90",
         "120"
     };
 
-    public static readonly float[] BalancedModeOptionsMultipliers =
+    public static float[] BalancedModeOptionsMultipliers => new float[]
     {
         0f,
         0.1f,
@@ -65,13 +66,13 @@ public class BetterSprinklersPlusConfig
         1f
     };
 
-    private static readonly string[] CannotAffordOptionsText =
+    private static string[] CannotAffordOptionsText => new string[]
     {
         "Off",
         "Don't Water",
     };
 
-    private static readonly string[] DefaultTilesOptionsText =
+    private static string[] DefaultTilesOptionsText => new string[]
     {
         "Cost Money",
         "Are Free",
