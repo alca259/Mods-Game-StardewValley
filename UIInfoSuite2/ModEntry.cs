@@ -1,4 +1,5 @@
-﻿using StardewModdingAPI;
+﻿using Alca259.Common;
+using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Menus;
@@ -12,13 +13,13 @@ namespace UIInfoSuite2;
 
 public class ModEntry : Mod
 {
-    private static SkipIntro _skipIntro; // Needed so GC won't throw away object with subscriptions
+    private static SkipIntro? _skipIntro; // Needed so GC won't throw away object with subscriptions
     private static ModConfig _modConfig;
 
-    private static EventHandler<ButtonsChangedEventArgs> _calendarAndQuestKeyBindingsHandler;
+    private static EventHandler<ButtonsChangedEventArgs>? _calendarAndQuestKeyBindingsHandler;
 
-    private ModOptions _modOptions;
-    private ModOptionsPageHandler _modOptionsPageHandler;
+    private ModOptions? _modOptions;
+    private ModOptionsPageHandler? _modOptionsPageHandler;
 
     public static IReflectionHelper Reflection { get; private set; } = null!;
 

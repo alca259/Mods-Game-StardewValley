@@ -1,3 +1,37 @@
 {
-  "ModName": ""
+  "Sprinkler.IsInCooldown": "Can't run sprinkler, on cooldown",
+  "Sprinkler.Activated": "Sprinkler activated",
+  "Sprinkler.ActivatedWithCost": "Sprinkler activated ({0}G)",
+  "Sprinkler.CostTooHigh": "Can't run sprinkler, it will cost too much ({0}G)",
+  "Sprinkler.Run": "Your sprinklers have run.",
+  "Sprinkler.RunWithCost": "Your sprinklers have run ({0}G).",
+  "Sprinkler.CantAfford": "You could not afford to run your sprinklers today ({0}G).",
+
+  "Config.Balance.Title": "Balance:",
+  "Config.Balance.BalancedMode.Title": "Mode",
+  "Config.Balance.BalancedMode.Tooltip": "Changes the amount that water costs.",
+  "Config.Balance.CannotAfford.Title": "Can't Afford",
+  "Config.Balance.CannotAfford.Tooltip": "What to do when you can't afford the cost",
+  "Config.Balance.DefaultTiles.Title": "Default Tiles",
+  "Config.Balance.DefaultTiles.Tooltip": "What should default tiles do?",
+  "Config.Balance.BalancedModeCostMessage.Title": "Show Bills Message",
+  "Config.Balance.BalancedModeCostMessage.Tooltip": "In the morning you'll see how much your sprinklers have cost.",
+  "Config.Balance.BalancedModeCannotAffordWarning.Title": "Show Can't Afford Warning",
+  "Config.Balance.BalancedModeCannotAffordWarning.Tooltip": "In the morning you'll be warned if watering did not finish.",
+
+  "Config.Options.Title": "Options:",
+  "Config.Options.BasicSprinklerRange.Title": "Basic Sprinkler Range",
+  "Config.Options.QualitySprinklerRange.Title": "Quality Sprinkler Range",
+  "Config.Options.IridiumSprinklerRange.Title": "Iridium Sprinkler Range",
+  "Config.Options.OverlayEnabledOnPlace.Title": "Show Placement Coverage",
+  "Config.Options.OverlayEnabledOnPlace.Tooltip": "When checked the Overlay shows Sprinkler/Scarecrow reach when placing.",
+  "Config.Options.SprinklerCooldown.Title": "Sprinkler Cooldown (seconds)",
+
+  "Config.KeyBindings.Title": "Key Bindings:",
+  "Config.KeyBindings.ActivateKey.Title": "Activate Button",
+  "Config.KeyBindings.ActivateKey.Tooltip": "The button to press to activate a sprinkler",
+  "Config.KeyBindings.ShowSprinklerEditKey.Title": "Show Config Key",
+  "Config.KeyBindings.ShowSprinklerEditKey.Tooltip": "The key to press to change the boundary of all sprinklers",
+  "Config.KeyBindings.ShowOverlayKey.Title": "Show Overlay Key",
+  "Config.KeyBindings.ShowOverlayKey.Tooltip": "The key to press to show the boundary of the highlighted sprinkler/scarecrow"
 }

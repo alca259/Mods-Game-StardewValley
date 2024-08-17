@@ -2,7 +2,6 @@ using Microsoft.Xna.Framework;
 using StardewValley;
 using StardewValley.Objects;
 using StardewValley.TerrainFeatures;
-using xTile.Tiles;
 using Object = StardewValley.Object;
 
 namespace BetterSprinklersPlus.Framework.Helpers;
@@ -12,85 +11,86 @@ namespace BetterSprinklersPlus.Framework.Helpers;
 */
 public static class SprinklerHelper
 {
+
     public static readonly List<int> SprinklerObjectIds = new()
-{
-  599,
-  621,
-  645,
-};
+    {
+        SprinklerIDs.Basic,
+        SprinklerIDs.Quality,
+        SprinklerIDs.Iridium,
+    };
 
     public static readonly int PressureNozzleId = 915;
     public static readonly Dictionary<int, string> SprinklerTypes = new()
     {
-        [599] = "Sprinkler",
-        [621] = "Quality Sprinkler",
-        [645] = "Iridium Sprinkler",
+        [SprinklerIDs.Basic] = "Sprinkler",
+        [SprinklerIDs.Quality] = "Quality Sprinkler",
+        [SprinklerIDs.Iridium] = "Iridium Sprinkler",
     };
 
     public static readonly Dictionary<int, int> DefaultTileCountWithoutPressureNozzle = new()
     {
-        [599] = 4,
-        [621] = 8,
-        [645] = 24,
+        [SprinklerIDs.Basic] = 4,
+        [SprinklerIDs.Quality] = 8,
+        [SprinklerIDs.Iridium] = 24,
     };
 
     public static readonly Dictionary<int, int> DefaultTileCountWithPressureNozzle = new()
     {
-        [599] = 8,
-        [621] = 24,
-        [645] = 48,
+        [SprinklerIDs.Basic] = 8,
+        [SprinklerIDs.Quality] = 24,
+        [SprinklerIDs.Iridium] = 48,
     };
 
     public static readonly Dictionary<int, int[,]> DefaultGrids = new()
     {
-        [599] = new[,]
-      {
-    { 0, 1, 0 },
-    { 1, 0, 1 },
-    { 0, 1, 0 },
-  },
-        [621] = new[,]
-      {
-    { 1, 1, 1 },
-    { 1, 0, 1 },
-    { 1, 1, 1 }
-  },
-        [645] = new[,]
-      {
-    { 1, 1, 1, 1, 1 },
-    { 1, 1, 1, 1, 1 },
-    { 1, 1, 0, 1, 1 },
-    { 1, 1, 1, 1, 1 },
-    { 1, 1, 1, 1, 1 },
-  }
+        [SprinklerIDs.Basic] = new[,]
+        {
+            { 0, 1, 0 },
+            { 1, 0, 1 },
+            { 0, 1, 0 },
+        },
+        [SprinklerIDs.Quality] = new[,]
+        {
+            { 1, 1, 1 },
+            { 1, 0, 1 },
+            { 1, 1, 1 }
+        },
+        [SprinklerIDs.Iridium] = new[,]
+        {
+            { 1, 1, 1, 1, 1 },
+            { 1, 1, 1, 1, 1 },
+            { 1, 1, 0, 1, 1 },
+            { 1, 1, 1, 1, 1 },
+            { 1, 1, 1, 1, 1 },
+        }
     };
 
     public static readonly Dictionary<int, int[,]> DefaultGridsWithPressureNozzle = new()
     {
-        [599] = new[,]
-      {
-    { 1, 1, 1 },
-    { 1, 0, 1 },
-    { 1, 1, 1 },
-  },
-        [621] = new[,]
-      {
-    { 1, 1, 1, 1, 1 },
-    { 1, 1, 1, 1, 1 },
-    { 1, 1, 0, 1, 1 },
-    { 1, 1, 1, 1, 1 },
-    { 1, 1, 1, 1, 1 },
-  },
-        [645] = new[,]
-      {
-    { 1, 1, 1, 1, 1, 1, 1 },
-    { 1, 1, 1, 1, 1, 1, 1 },
-    { 1, 1, 1, 1, 1, 1, 1 },
-    { 1, 1, 1, 0, 1, 1, 1 },
-    { 1, 1, 1, 1, 1, 1, 1 },
-    { 1, 1, 1, 1, 1, 1, 1 },
-    { 1, 1, 1, 1, 1, 1, 1 },
-  }
+        [SprinklerIDs.Basic] = new[,]
+        {
+            { 1, 1, 1 },
+            { 1, 0, 1 },
+            { 1, 1, 1 },
+        },
+        [SprinklerIDs.Quality] = new[,]
+        {
+            { 1, 1, 1, 1, 1 },
+            { 1, 1, 1, 1, 1 },
+            { 1, 1, 0, 1, 1 },
+            { 1, 1, 1, 1, 1 },
+            { 1, 1, 1, 1, 1 },
+        },
+        [SprinklerIDs.Iridium] = new[,]
+        {
+            { 1, 1, 1, 1, 1, 1, 1 },
+            { 1, 1, 1, 1, 1, 1, 1 },
+            { 1, 1, 1, 1, 1, 1, 1 },
+            { 1, 1, 1, 0, 1, 1, 1 },
+            { 1, 1, 1, 1, 1, 1, 1 },
+            { 1, 1, 1, 1, 1, 1, 1 },
+            { 1, 1, 1, 1, 1, 1, 1 },
+        }
     };
 
     public static bool IsSprinkler(this Object obj)
@@ -264,9 +264,7 @@ public static class SprinklerHelper
         if (BetterSprinklersPlusConfig.Active.DefaultTiles == (int)BetterSprinklersPlusConfig.DefaultTilesOptions.AreFree)
         {
             Logger.Verbose("Defaults are free, removing tiles in default position");
-            // grid.VerboseLog();
             grid = grid.UnsetDefaultTiles(type, hasPressureNozzle);
-            // grid.VerboseLog();
         }
 
         Logger.Verbose($"CalculateCostForSprinkler(int[,] grid, {SprinklerTypes[type]})");
@@ -304,21 +302,6 @@ public static class SprinklerHelper
         return grid.UnsetDefaultTilesWithoutPressureNozzle(type);
     }
 
-    private static void VerboseLog(this int[,] grid)
-    {
-        var cols = grid.GetLength(0);
-        var rows = grid.GetLength(1);
-        for (var row = 0; row < rows; row++)
-        {
-            var r = "";
-            for (var col = 0; col < cols; col++)
-            {
-                r += $"{grid[col, row]}";
-            }
-            Logger.Verbose($"{r}");
-        }
-    }
-
     private static int[,] UnsetDefaultTilesWithPressureNozzle(this int[,] grid, int type)
     {
         var newGrid = (int[,])grid.Clone();
@@ -326,7 +309,7 @@ public static class SprinklerHelper
 
         switch (type)
         {
-            case 599:
+            case SprinklerIDs.Basic:
                 for (var x = centerTile - 1; x < centerTile + 2; x++)
                 {
                     for (var y = centerTile - 1; y < centerTile + 2; y++)
@@ -336,7 +319,7 @@ public static class SprinklerHelper
                 }
 
                 break;
-            case 621:
+            case SprinklerIDs.Quality:
                 for (var x = centerTile - 2; x < centerTile + 3; x++)
                 {
                     for (var y = centerTile - 2; y < centerTile + 3; y++)
@@ -346,7 +329,7 @@ public static class SprinklerHelper
                 }
 
                 break;
-            case 645:
+            case SprinklerIDs.Iridium:
                 for (var x = centerTile - 3; x < centerTile + 4; x++)
                 {
                     for (var y = centerTile - 3; y < centerTile + 4; y++)
@@ -367,14 +350,14 @@ public static class SprinklerHelper
 
         switch (type)
         {
-            case 599:
+            case SprinklerIDs.Basic:
                 newGrid[centerTile, centerTile] = 0;
                 newGrid[centerTile - 1, centerTile] = 0;
                 newGrid[centerTile + 1, centerTile] = 0;
                 newGrid[centerTile, centerTile - 1] = 0;
                 newGrid[centerTile, centerTile + 1] = 0;
                 break;
-            case 621:
+            case SprinklerIDs.Quality:
                 for (var x = centerTile - 1; x < centerTile + 2; x++)
                 {
                     for (var y = centerTile - 1; y < centerTile + 2; y++)
@@ -384,7 +367,7 @@ public static class SprinklerHelper
                 }
 
                 break;
-            case 645:
+            case SprinklerIDs.Iridium:
                 for (var x = centerTile - 2; x < centerTile + 3; x++)
                 {
                     for (var y = centerTile - 2; y < centerTile + 3; y++)
@@ -392,6 +375,7 @@ public static class SprinklerHelper
                         newGrid[x, y] = 0;
                     }
                 }
+
                 break;
         }
 

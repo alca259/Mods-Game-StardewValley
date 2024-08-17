@@ -4,7 +4,6 @@ using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
-using StardewValley.Objects;
 using StardewValley.TerrainFeatures;
 using StardewValley.Tools;
 using SObject = StardewValley.Object;
@@ -32,6 +31,7 @@ public class ModEntry : Mod
     /// <param name="helper">Provides simplified APIs for writing mods.</param>
     public override void Entry(IModHelper helper)
     {
+        I18n.Init(helper.Translation);
         Logger.init(Monitor);
         SetUpEvents();
     }
@@ -142,7 +142,7 @@ public class ModEntry : Mod
             var dictDateTime = _sprinklerActivations[key].Item2;
             if (DateTime.Now <= dictDateTime.AddSeconds(BetterSprinklersPlusConfig.Active.SprinklerCooldown) && dictObj == obj)
             {
-                Game1.addHUDMessage(new HUDMessage("Can't run sprinkler, on cooldown", 3));
+                Game1.addHUDMessage(new HUDMessage(I18n.Sprinkler_IsInCooldown(), 3));
                 return;
             }
             else
@@ -162,7 +162,7 @@ public class ModEntry : Mod
         {
             Logger.Verbose($"Sprinkler at {tile.X}x{tile.Y} activated");
             ActivateSprinkler(Game1.currentLocation, tile, obj);
-            Game1.addHUDMessage(new HUDMessage("Sprinkler Activated", 2));
+            Game1.addHUDMessage(new HUDMessage(I18n.Sprinkler_Activated(), 2));
             return;
         }
 
@@ -173,14 +173,14 @@ public class ModEntry : Mod
         if (BetterSprinklersPlusConfig.Active.CannotAfford == (int)BetterSprinklersPlusConfig.CannotAffordOptions.DoNotWater && Game1.player.Money < cost)
         {
             Logger.Warn($"Player tried to activate sprinkler but it was too expensive ({cost}G) > {Game1.player.Money}");
-            Game1.addHUDMessage(new HUDMessage($"Can't run sprinkler, it will cost too much ({cost}G)", 3));
+            Game1.addHUDMessage(new HUDMessage(string.Format(I18n.Sprinkler_CostTooHigh(), cost), 3));
             return;
         }
 
         Logger.Verbose($"Sprinkler at {tile.X}x{tile.Y} activated ({cost}G)");
         ActivateSprinkler(Game1.currentLocation, tile, obj);
         DeductCost(cost);
-        Game1.addHUDMessage(new HUDMessage($"Sprinkler Activated ({cost}G)", 2));
+        Game1.addHUDMessage(new HUDMessage(string.Format(I18n.Sprinkler_ActivatedWithCost(), cost), 2));
     }
 
     /// <summary>
@@ -212,7 +212,7 @@ public class ModEntry : Mod
             Logger.Verbose("Balanced mode is off, just water");
             if (BetterSprinklersPlusConfig.Active.BalancedModeCostMessage)
             {
-                Game1.addHUDMessage(new HUDMessage("Your sprinklers have run.", 2));
+                Game1.addHUDMessage(new HUDMessage(I18n.Sprinkler_Run(), 2));
             }
 
             WaterAll();
@@ -224,12 +224,12 @@ public class ModEntry : Mod
         var affordable = Game1.player.Money;
         if (cost > affordable && BetterSprinklersPlusConfig.Active.CannotAfford == (int)BetterSprinklersPlusConfig.CannotAffordOptions.DoNotWater)
         {
-            Logger.Verbose(
-              $"We can only afford {affordable}G, but watering would cost {cost}G");
+            Logger.Verbose($"We can only afford {affordable}G, but watering would cost {cost}G");
             Logger.Verbose("Do not water is set, unwatering.");
+
             if (BetterSprinklersPlusConfig.Active.BalancedModeCostMessage || BetterSprinklersPlusConfig.Active.BalancedModeCannotAffordWarning)
             {
-                Game1.addHUDMessage(new HUDMessage($"You could not afford to run your sprinklers today ({cost}G).", 3));
+                Game1.addHUDMessage(new HUDMessage(string.Format(I18n.Sprinkler_CantAfford(), cost), 3));
             }
 
             return;
@@ -241,7 +241,7 @@ public class ModEntry : Mod
         Logger.Verbose($"Sprinklers have run ({cost}G).");
         if (BetterSprinklersPlusConfig.Active.BalancedModeCostMessage && cost > 0)
         {
-            Game1.addHUDMessage(new HUDMessage($"Your sprinklers have run ({cost}G).", 2));
+            Game1.addHUDMessage(new HUDMessage(string.Format(I18n.Sprinkler_RunWithCost(), cost), 2));
         }
     }
 

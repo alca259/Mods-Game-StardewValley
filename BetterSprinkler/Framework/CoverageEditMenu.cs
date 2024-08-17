@@ -86,15 +86,15 @@ internal class CoverageEditMenu : IClickableMenu
         _tabs.Add(new ClickableComponent(
           new Rectangle(menuX - TabDistanceFromMenu - tabWidth,
             menuY + TabDistanceVerticalBetweenTabs, tabWidth, tabHeight),
-          new Object("599", 1)));
+          new Object(SprinklerIDs.Basic.ToString(), 1)));
         _tabs.Add(new ClickableComponent(
           new Rectangle(menuX - TabDistanceFromMenu - tabWidth,
             _tabs[0].bounds.Y + tabHeight + TabDistanceVerticalBetweenTabs, tabWidth, tabHeight),
-          new Object("621", 1)));
+          new Object(SprinklerIDs.Quality.ToString(), 1)));
         _tabs.Add(new ClickableComponent(
           new Rectangle(menuX - TabDistanceFromMenu - tabWidth,
             _tabs[1].bounds.Y + tabHeight + TabDistanceVerticalBetweenTabs, tabWidth, tabHeight),
-          new Object("645", 1)));
+          new Object(SprinklerIDs.Iridium.ToString(), 1)));
 
         _okButton = new ClickableTextureComponent("save-changes",
           new Rectangle(xPositionOnScreen + width - Game1.tileSize / 2,
@@ -119,7 +119,7 @@ internal class CoverageEditMenu : IClickableMenu
         _whitePixel.SetData(new[] { Color.White });
 
         Logger.Verbose($"Setting Active Sprinkler Sheet Index");
-        SetActiveSprinklerSheetIndex(599);
+        SetActiveSprinklerSheetIndex(SprinklerIDs.Basic);
     }
 
     private Color GetColor(int value)
@@ -338,14 +338,14 @@ internal class CoverageEditMenu : IClickableMenu
         // Set defaults
         switch (type)
         {
-            case 599:
+            case SprinklerIDs.Basic:
                 _sprinklerGrid[_centerTile, _centerTile] = 0;
                 _sprinklerGrid[_centerTile - 1, _centerTile] = 1;
                 _sprinklerGrid[_centerTile + 1, _centerTile] = 1;
                 _sprinklerGrid[_centerTile, _centerTile - 1] = 1;
                 _sprinklerGrid[_centerTile, _centerTile + 1] = 1;
                 break;
-            case 621:
+            case SprinklerIDs.Quality:
                 for (var x = _centerTile - 1; x < _centerTile + 2; x++)
                 {
                     for (var y = _centerTile - 1; y < _centerTile + 2; y++)
@@ -358,7 +358,7 @@ internal class CoverageEditMenu : IClickableMenu
                 }
 
                 break;
-            case 645:
+            case SprinklerIDs.Iridium:
                 for (var x = _centerTile - 2; x < _centerTile + 3; x++)
                 {
                     for (var y = _centerTile - 2; y < _centerTile + 3; y++)

@@ -1,4 +1,5 @@
-﻿using BetterSprinklersPlus.Framework.Helpers;
+﻿using Alca259.Common;
+using BetterSprinklersPlus.Framework.Helpers;
 using StardewModdingAPI;
 using StardewValley;
 
@@ -29,11 +30,11 @@ public class BetterSprinklersPlusConfig
     }
 
     public static readonly string[] RangeAllowedValues = {
-      "7",
-      "11",
-      "15",
-      "21",
-      "25"
+        "7",
+        "11",
+        "15",
+        "21",
+        "25"
     };
 
     /// <summary>The maximum grid size. This one is Scarecrow grids</summary>
@@ -41,40 +42,40 @@ public class BetterSprinklersPlusConfig
 
     private static readonly string[] BalancedModeOptionsText =
     {
-      "Off",
-      "Easy",
-      "Normal",
-      "Hard",
-      "Very Hard",
+        "Off",
+        "Easy",
+        "Normal",
+        "Hard",
+        "Very Hard",
     };
 
     private static readonly string[] SprinklerCooldownAllowedValues = {
-      "30",
-      "60",
-      "90",
-      "120"
+        "30",
+        "60",
+        "90",
+        "120"
     };
 
     public static readonly float[] BalancedModeOptionsMultipliers =
     {
-      0f,
-      0.1f,
-      0.25f,
-      0.5f,
-      1f
+        0f,
+        0.1f,
+        0.25f,
+        0.5f,
+        1f
     };
 
     private static readonly string[] CannotAffordOptionsText =
     {
-      "Off",
-      "Don't Water",
+        "Off",
+        "Don't Water",
     };
 
     private static readonly string[] DefaultTilesOptionsText =
     {
-      "Cost Money",
-      "Are Free",
-      "Same Number are Free",
+        "Cost Money",
+        "Are Free",
+        "Same Number are Free",
     };
 
     public static BetterSprinklersPlusConfig Active { get; set; }
@@ -96,15 +97,15 @@ public class BetterSprinklersPlusConfig
 
     public Dictionary<int, int> Range { get; set; } = new()
     {
-        [599] = 7,
-        [621] = 11,
-        [645] = 15,
+        [SprinklerIDs.Basic] = 7,
+        [SprinklerIDs.Quality] = 11,
+        [SprinklerIDs.Iridium] = 15,
     };
     public Dictionary<int, float> CostMultiplier { get; set; } = new()
     {
-        [599] = 1.0f,
-        [621] = 0.5f,
-        [645] = 0.25f,
+        [SprinklerIDs.Basic] = 1.0f,
+        [SprinklerIDs.Quality] = 0.5f,
+        [SprinklerIDs.Iridium] = 0.25f,
     };
 
     public float PressureNozzleMultiplier { get; set; } = 0.5f;
@@ -118,48 +119,48 @@ public class BetterSprinklersPlusConfig
     /// </summary>
     public Dictionary<int, int[,]> SprinklerShapes { get; set; } = new()
     {
-        [599] = new[,]
-      {
-    { 0, 0, 0, 0, 0, 0, 0 },
-    { 0, 0, 0, 0, 0, 0, 0 },
-    { 0, 0, 0, 1, 0, 0, 0 },
-    { 0, 0, 1, 0, 1, 0, 0 },
-    { 0, 0, 0, 1, 0, 0, 0 },
-    { 0, 0, 0, 0, 0, 0, 0 },
-    { 0, 0, 0, 0, 0, 0, 0 }
-  },
-        [621] = new[,]
-      {
-    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-    { 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0 },
-    { 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0 },
-    { 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0 },
-    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
-  },
-        [645] = new[,]
-      {
-    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-    { 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0 },
-    { 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0 },
-    { 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0 },
-    { 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0 },
-    { 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0 },
-    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
-  }
+        [SprinklerIDs.Basic] = new[,]
+        {
+            { 0, 0, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 1, 0, 0, 0 },
+            { 0, 0, 1, 0, 1, 0, 0 },
+            { 0, 0, 0, 1, 0, 0, 0 },
+            { 0, 0, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 0, 0, 0 }
+        },
+        [SprinklerIDs.Quality] = new[,]
+        {
+            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+        },
+        [SprinklerIDs.Iridium] = new[,]
+        {
+            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+        }
     };
 
     public static void Init(IModHelper helper, IManifest mod)
@@ -218,15 +219,15 @@ public class BetterSprinklersPlusConfig
 
         configMenu.Register(
           mod: Mod,
-          reset: () => { BetterSprinklersPlusConfig.Active = new BetterSprinklersPlusConfig(); },
+          reset: () => { Active = new BetterSprinklersPlusConfig(); },
           save: SaveChanges);
 
-        configMenu.AddSectionTitle(mod: Mod, () => "Balance:");
+        configMenu.AddSectionTitle(mod: Mod, () => I18n.Config_Balance_Title());
 
         configMenu.AddTextOption(
           mod: Mod,
-          name: () => "Mode",
-          tooltip: () => "Changes the amount that water costs.",
+          name: () => I18n.Config_Balance_BalancedMode_Title(),
+          tooltip: () => I18n.Config_Balance_BalancedMode_Tooltip(),
           getValue: () =>
           {
               try
@@ -258,8 +259,8 @@ public class BetterSprinklersPlusConfig
 
         configMenu.AddTextOption(
           mod: Mod,
-          name: () => "Can't Afford",
-          tooltip: () => "What to do when you can't afford the cost",
+          name: () => I18n.Config_Balance_CannotAfford_Title(),
+          tooltip: () => I18n.Config_Balance_CannotAfford_Tooltip(),
           getValue: () =>
           {
               try
@@ -291,8 +292,8 @@ public class BetterSprinklersPlusConfig
 
         configMenu.AddTextOption(
           mod: Mod,
-          name: () => "Default Tiles",
-          tooltip: () => "What should default tiles do?",
+          name: () => I18n.Config_Balance_DefaultTiles_Title(),
+          tooltip: () => I18n.Config_Balance_DefaultTiles_Tooltip(),
           getValue: () =>
           {
               try
@@ -324,25 +325,25 @@ public class BetterSprinklersPlusConfig
 
         configMenu.AddBoolOption(
           mod: Mod,
-          name: () => "Show Bills Message",
-          tooltip: () => "In the morning you'll see how much your sprinklers have cost.",
+          name: () => I18n.Config_Balance_BalancedModeCostMessage_Title(),
+          tooltip: () => I18n.Config_Balance_BalancedModeCostMessage_Tooltip(),
           getValue: () => Active.BalancedModeCostMessage,
           setValue: value => Active.BalancedModeCostMessage = value
         );
 
         configMenu.AddBoolOption(
           mod: Mod,
-          name: () => "Show Can't Afford Warning",
-          tooltip: () => "In the morning you'll be warned if watering did not finish.",
+          name: () => I18n.Config_Balance_BalancedModeCannotAffordWarning_Title(),
+          tooltip: () => I18n.Config_Balance_BalancedModeCannotAffordWarning_Tooltip(),
           getValue: () => Active.BalancedModeCannotAffordWarning,
           setValue: value => Active.BalancedModeCannotAffordWarning = value
         );
 
-        configMenu.AddSectionTitle(mod: Mod, () => "Options:");
+        configMenu.AddSectionTitle(mod: Mod, () => I18n.Config_Options_Title());
 
         configMenu.AddTextOption(
           mod: Mod,
-          name: () => "Sprinkler Range",
+          name: () => I18n.Config_Options_BasicSprinklerRange_Title(),
           getValue: () => $"{Active.Range[SprinklerHelper.SprinklerObjectIds[0]]}",
           setValue: value => UpdateMaxCoverage(Active, SprinklerHelper.SprinklerObjectIds[0], value),
           allowedValues: RangeAllowedValues
@@ -350,7 +351,7 @@ public class BetterSprinklersPlusConfig
 
         configMenu.AddTextOption(
           mod: Mod,
-          name: () => "Quality Sprinkler Range",
+          name: () => I18n.Config_Options_QualitySprinklerRange_Title(),
           getValue: () => $"{Active.Range[SprinklerHelper.SprinklerObjectIds[1]]}",
           setValue: value => UpdateMaxCoverage(Active, SprinklerHelper.SprinklerObjectIds[1], value),
           allowedValues: RangeAllowedValues
@@ -358,7 +359,7 @@ public class BetterSprinklersPlusConfig
 
         configMenu.AddTextOption(
           mod: Mod,
-          name: () => "Iridium Sprinkler Range",
+          name: () => I18n.Config_Options_IridiumSprinklerRange_Title(),
           getValue: () => $"{Active.Range[SprinklerHelper.SprinklerObjectIds[2]]}",
           setValue: value => UpdateMaxCoverage(Active, SprinklerHelper.SprinklerObjectIds[2], value),
           allowedValues: RangeAllowedValues
@@ -366,42 +367,42 @@ public class BetterSprinklersPlusConfig
 
         configMenu.AddBoolOption(
           mod: Mod,
-          name: () => "Show Placement Coverage",
-          tooltip: () => "When checked the Overlay shows Sprinkler/Scarecrow reach when placing.",
+          name: () => I18n.Config_Options_OverlayEnabledOnPlace_Title(),
+          tooltip: () => I18n.Config_Options_OverlayEnabledOnPlace_Tooltip(),
           getValue: () => Active.OverlayEnabledOnPlace,
           setValue: value => Active.OverlayEnabledOnPlace = value
         );
 
         configMenu.AddTextOption(
           mod: Mod,
-          name: () => "Sprinkler Cooldown (seconds)",
+          name: () => I18n.Config_Options_SprinklerCooldown_Title(),
           getValue: () => $"{Active.SprinklerCooldown}",
           setValue: value => UpdateSprinklerCooldown(Active, value),
           allowedValues: SprinklerCooldownAllowedValues
         );
 
-        configMenu.AddSectionTitle(mod: Mod, () => "Key Bindings:");
+        configMenu.AddSectionTitle(mod: Mod, () => I18n.Config_KeyBindings_Title());
 
         configMenu.AddKeybind(
           mod: Mod,
-          name: () => "Activate Button",
-          tooltip: () => "The button to press to activate a sprinkler",
+          name: () => I18n.Config_KeyBindings_ActivateKey_Title(),
+          tooltip: () => I18n.Config_KeyBindings_ActivateKey_Tooltip(),
           getValue: () => Active.ActivateKey,
           setValue: value => Active.ActivateKey = value
         );
 
         configMenu.AddKeybind(
           mod: Mod,
-          name: () => "Show Config Key",
-          tooltip: () => "The key to press to change the boundary of all sprinklers",
+          name: () => I18n.Config_KeyBindings_ShowSprinklerEditKey_Title(),
+          tooltip: () => I18n.Config_KeyBindings_ShowSprinklerEditKey_Tooltip(),
           getValue: () => Active.ShowSprinklerEditKey,
           setValue: value => Active.ShowSprinklerEditKey = value
         );
 
         configMenu.AddKeybind(
           mod: Mod,
-          name: () => "Show Overlay Key",
-          tooltip: () => "The key to press to show the boundary of the highlighted sprinkler/scarecrow",
+          name: () => I18n.Config_KeyBindings_ShowOverlayKey_Title(),
+          tooltip: () => I18n.Config_KeyBindings_ShowOverlayKey_Tooltip(),
           getValue: () => Active.ShowOverlayKey,
           setValue: value => Active.ShowOverlayKey = value
         );
