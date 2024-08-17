@@ -12,7 +12,7 @@ namespace BetterSprinklersPlus;
 /// <summary>
 /// Better Sprinklers Plus
 /// </summary>
-public class BetterSprinklersPlus : Mod
+public class ModEntry : Mod
 {
     /// <summary>
     /// Is F3 mode on?
