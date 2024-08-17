@@ -10,7 +10,7 @@
   "UniqueID": "Zoryn.DurableFences",
   "Name": "Durable Fences",
   "Author": "Zoryn;Alca259",
-  "Version": "3.0.1-Debug",
+  "Version": "3.0.1",
   "Description": "Makes fences more durable.",
   "MinimumApiVersion": "4.0.0",
   "MinimumGameVersion": "1.6.8",

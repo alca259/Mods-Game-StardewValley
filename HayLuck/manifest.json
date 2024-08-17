@@ -10,7 +10,7 @@
   "UniqueID": "Alca259.HayLuck",
   "Name": "HayLuck",
   "Author": "Alca259",
-  "Version": "3.0.1-Debug",
+  "Version": "3.0.1",
   "Description": "Allow to customize the level of spread of hay",
   "MinimumApiVersion": "4.0.0",
   "MinimumGameVersion": "1.6.8",

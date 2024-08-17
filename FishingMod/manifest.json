@@ -10,7 +10,7 @@
   "UniqueID": "Zoryn.FishingMod",
   "Name": "Fishing Mod",
   "Author": "Zoryn;Alca259",
-  "Version": "3.0.1-Debug",
+  "Version": "3.0.1",
   "Description": "Lets you change some things about fishing based on a config file.",
   "MinimumApiVersion": "4.0.0",
   "MinimumGameVersion": "1.6.8",
