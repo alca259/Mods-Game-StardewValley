@@ -94,11 +94,16 @@ internal class ShowAccurateHearts : IDisposable
             return;
         }
 
+        var socialPage = typeof(SocialPage);
+        var slotPositionField = socialPage.GetField("slotPosition", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+        if (slotPositionField == null)
+            return;
 
-        var slotPosition =
-          (int)typeof(SocialPage).GetField("slotPosition", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(
-            _socialPage
-          )!;
+        var slotPositionFieldValue = slotPositionField.GetValue(_socialPage);
+        if (slotPositionFieldValue == null)
+            return;
+
+        var slotPosition = (int)slotPositionFieldValue;
         var yOffset = 0;
 
         for (int i = slotPosition; i < slotPosition + 5 && i < _socialPage.SocialEntries.Count; ++i)

@@ -164,11 +164,16 @@ internal class LocationOfTownsfolk : IDisposable
 
     private void CheckSelectedBox(ButtonPressedEventArgs e)
     {
-        var slotPosition =
-          (int)typeof(SocialPage).GetField("slotPosition", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(
-            _socialPage
-          )!;
+        var socialPage = typeof(SocialPage);
+        var slotPositionField = socialPage.GetField("slotPosition", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+        if (slotPositionField == null)
+            return;
 
+        var slotPositionFieldValue = slotPositionField.GetValue(_socialPage);
+        if (slotPositionFieldValue == null)
+            return;
+
+        var slotPosition = (int)slotPositionFieldValue;
         for (int i = slotPosition; i < slotPosition + 5; ++i)
         {
             OptionsCheckbox checkbox = _checkboxes[i];
@@ -202,10 +207,16 @@ internal class LocationOfTownsfolk : IDisposable
           true
         );
 
-        var slotPosition =
-          (int)typeof(SocialPage).GetField("slotPosition", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(
-            _socialPage
-          )!;
+        var socialPage = typeof(SocialPage);
+        var slotPositionField = socialPage.GetField("slotPosition", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+        if (slotPositionField == null)
+            return;
+
+        var slotPositionFieldValue = slotPositionField.GetValue(_socialPage);
+        if (slotPositionFieldValue == null)
+            return;
+
+        var slotPosition = (int)slotPositionFieldValue;
         var yOffset = 0;
 
         for (int i = slotPosition; i < slotPosition + 5 && i < _friendNames.Length; ++i)
