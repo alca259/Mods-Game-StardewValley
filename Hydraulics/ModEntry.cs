@@ -103,15 +103,7 @@ public partial class ModEntry : Mod
 
         if (e.Pressed.Contains(SButton.MouseRight))
         {
-            bool isShiftDown = Helper.Input.IsDown(SButton.LeftShift) || Helper.Input.IsDown(SButton.RightShift);
-            if (isShiftDown)
-            {
-                TryAddPumpAtCursor();
-            }
-            else
-            {
-                TryRemovePipeAtCursor();
-            }
+            TryRemovePipeAtCursor();
         }
     }
 
@@ -165,8 +157,11 @@ public partial class ModEntry : Mod
             if (!IsHydraulicPumpObject(obj))
                 continue;
 
-            if (!HydraulicWorldRules.CanPlacePumpOnTile(e.Location, tile))
-                continue;
+            if (_network.ContainsPipe(tile))
+            {
+                _network.TryRemovePipe(tile);
+                changed = true;
+            }
 
             changed |= _network.TryAddPump(tile);
         }
@@ -232,38 +227,6 @@ public partial class ModEntry : Mod
 
         RecalculateAndApplyIrrigation();
         RequestIrrigationSync();
-    }
-
-    private void TryAddPumpAtCursor()
-    {
-        Vector2 tile = Helper.Input.GetCursorPosition().Tile;
-        GameLocation location = Game1.currentLocation;
-
-        if (!HydraulicWorldRules.CanPlacePumpOnTile(location, tile))
-        {
-            Monitor.Log("La bomba debe colocarse adyacente a un pozo o agua y en una casilla libre.", LogLevel.Warn);
-            return;
-        }
-
-        if (_network.ContainsPipe(tile))
-        {
-            Monitor.Log("No puedes colocar una bomba en una casilla con tubería.", LogLevel.Warn);
-            return;
-        }
-
-        if (location.Objects.TryGetValue(tile, out StardewValley.Object? obj)
-            && obj is not null
-            && !IsHydraulicPumpObject(obj))
-        {
-            Monitor.Log("La casilla ya está ocupada por otro objeto.", LogLevel.Warn);
-            return;
-        }
-
-        if (_network.TryAddPump(tile))
-        {
-            RecalculateAndApplyIrrigation();
-            RequestIrrigationSync();
-        }
     }
 
     private void TryRemovePipeAtCursor()
@@ -359,9 +322,6 @@ public partial class ModEntry : Mod
             if (!IsHydraulicPumpObject(obj))
                 continue;
 
-            if (!HydraulicWorldRules.CanPlacePumpOnTile(farm, tile))
-                continue;
-
             _network.TryAddPump(tile);
         }
     }
@@ -380,25 +340,10 @@ public partial class ModEntry : Mod
 
         Vector2 tile = Helper.Input.GetCursorPosition().Tile;
         GameLocation location = Game1.currentLocation;
-        bool isShiftDown = Helper.Input.IsDown(SButton.LeftShift) || Helper.Input.IsDown(SButton.RightShift);
-
-        bool canPlace;
-        Color color;
-
-        if (isShiftDown)
-        {
-            canPlace = HydraulicWorldRules.CanPlacePumpOnTile(location, tile) && !_network.ContainsPipe(tile);
-            color = canPlace
-                ? new Color(40, 220, 40, 120)
-                : new Color(220, 40, 40, 120);
-        }
-        else
-        {
-            canPlace = HydraulicWorldRules.CanPlacePipeOnTile(location, tile) && !_network.ContainsPump(tile);
-            color = canPlace
-                ? new Color(40, 160, 255, 90)
-                : new Color(220, 40, 40, 90);
-        }
+        bool canPlace = HydraulicWorldRules.CanPlacePipeOnTile(location, tile) && !_network.ContainsPump(tile);
+        Color color = canPlace
+            ? new Color(40, 160, 255, 90)
+            : new Color(220, 40, 40, 90);
 
         Vector2 screen = Game1.GlobalToLocal(Game1.viewport, tile * Game1.tileSize);
         spriteBatch.Draw(
