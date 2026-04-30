@@ -6,11 +6,10 @@
 
     <!-- https://github.com/KhloeLeclair/Stardew-ModManifestBuilder/tree/main -->
 
-
     <Authors>Zoryn;Alca259</Authors>
-    <Version>3.0.1</Version>
-    <MinimumApiVersion>4.0.0</MinimumApiVersion>
-    <MinimumGameVersion>auto</MinimumGameVersion>
+    <Version>3.1.1</Version>
+    <MinimumApiVersion>4.5.2</MinimumApiVersion>
+    <MinimumGameVersion>1.6.15</MinimumGameVersion>
     <UpdateKeys>GitHub:alca259/Mods-Game-StardewValley</UpdateKeys>
     <AlwaysSetEntryDll>true</AlwaysSetEntryDll>
 
@@ -33,9 +32,9 @@
 
   <!-- mod build package -->
   <ItemGroup>
-    <PackageReference Include="Leclair.Stardew.ModManifestBuilder" Version="2.3.1" />
-    <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.1.1" />
-    <PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.0.1"/>
+    <PackageReference Include="Leclair.Stardew.ModManifestBuilder" Version="2.4.1" />
+    <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.4.0" />
+    <PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.2.1"/>
   </ItemGroup>
 
 </Project>

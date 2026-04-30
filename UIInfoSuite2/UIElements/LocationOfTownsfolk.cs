@@ -312,14 +312,14 @@ internal class LocationOfTownsfolk : IDisposable
         }
 
         Rectangle headShot = character.GetHeadShot();
-        MapAreaPosition? mapPosition =
+        var mapPosition =
           WorldMapManager.GetPositionData(
             Game1.player.currentLocation,
             new Point((int)location.Value.X, (int)location.Value.Y)
           ) ??
           WorldMapManager.GetPositionData(Game1.getFarm(), Point.Zero);
-        MapRegion? mapRegion = mapPosition.Region;
-        Rectangle mapBounds = mapRegion.GetMapPixelBounds();
+        MapRegion? mapRegion = mapPosition?.Data?.Region;
+        Rectangle mapBounds = mapRegion?.GetMapPixelBounds() ?? Rectangle.Empty;
         var offsetLocation = new Vector2(
           location.Value.X + mapBounds.X - headShot.Width,
           location.Value.Y + mapBounds.Y - headShot.Height
@@ -357,7 +357,7 @@ internal class LocationOfTownsfolk : IDisposable
     private static Vector2? GetMapCoordinatesForNPC(NPC character)
     {
         var playerNormalizedTile = new Point(Math.Max(0, Game1.player.TilePoint.X), Math.Max(0, Game1.player.TilePoint.Y));
-        MapAreaPosition playerMapAreaPosition =
+        MapAreaPositionWithContext? playerMapAreaPosition =
           WorldMapManager.GetPositionData(Game1.player.currentLocation, playerNormalizedTile) ??
           WorldMapManager.GetPositionData(Game1.getFarm(), Point.Zero);
         // ^^ Regarding that ?? clause...  If the player is in the farmhouse or barn or any building on the farm, GetPositionData is
@@ -366,14 +366,14 @@ internal class LocationOfTownsfolk : IDisposable
         //  the game code is always right, even when it's wrong.
 
         var characterNormalizedTile = new Point(Math.Max(0, character.TilePoint.X), Math.Max(0, character.TilePoint.Y));
-        MapAreaPosition characterMapAreaPosition =
+        var characterMapAreaPosition =
           WorldMapManager.GetPositionData(character.currentLocation, characterNormalizedTile);
 
         if (playerMapAreaPosition != null &&
             characterMapAreaPosition != null &&
-            !(characterMapAreaPosition.Region.Id != playerMapAreaPosition.Region.Id))
+            !(characterMapAreaPosition.Value.Data.Region.Id != playerMapAreaPosition.Value.Data.Region.Id))
         {
-            return characterMapAreaPosition.GetMapPixelPosition(character.currentLocation, characterNormalizedTile);
+            return characterMapAreaPosition.Value.Data.GetMapPixelPosition(character.currentLocation, characterNormalizedTile);
         }
 
         return null;
