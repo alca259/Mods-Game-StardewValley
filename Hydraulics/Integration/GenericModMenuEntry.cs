@@ -27,5 +27,19 @@ public partial class ModEntry
             getValue: () => _config.EnableMod,
             setValue: value => _config.EnableMod = value
         );
+
+        configMenu.AddKeybindList(
+            mod: ModManifest,
+            name: () => "Toggle Pipe Edit Mode",
+            getValue: () => _config.TogglePipeEditModeKey,
+            setValue: value => _config.TogglePipeEditModeKey = value
+        );
+
+        configMenu.AddBoolOption(
+            mod: ModManifest,
+            name: () => "Require Energy For Pumps",
+            getValue: () => _config.RequireEnergyForPumps,
+            setValue: value => _config.RequireEnergyForPumps = value
+        );
     }
 }
