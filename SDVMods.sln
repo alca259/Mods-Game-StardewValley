@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.4.33205.214
+# Visual Studio Version 18
+VisualStudioVersion = 18.5.11723.231 stable
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HayLuck", "HayLuck\HayLuck.csproj", "{E388BF58-E64A-4331-B268-302BC875DF0B}"
 EndProject
@@ -26,6 +26,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UIInfoSuite2", "UIInfoSuite2\UIInfoSuite2.csproj", "{1464D682-160C-46F6-A2A9-1E5EDC9398FA}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BetterSprinklersPlus", "BetterSprinkler\BetterSprinklersPlus.csproj", "{5EC2C923-2FA3-488D-911B-308AAFB6A32C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hydraulics", "Hydraulics\Hydraulics.csproj", "{01AA0321-5A95-46CC-A2BB-D2B81995E104}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -91,6 +93,14 @@ Global
 		{5EC2C923-2FA3-488D-911B-308AAFB6A32C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{5EC2C923-2FA3-488D-911B-308AAFB6A32C}.Release|x86.ActiveCfg = Release|Any CPU
 		{5EC2C923-2FA3-488D-911B-308AAFB6A32C}.Release|x86.Build.0 = Release|Any CPU
+		{01AA0321-5A95-46CC-A2BB-D2B81995E104}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{01AA0321-5A95-46CC-A2BB-D2B81995E104}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{01AA0321-5A95-46CC-A2BB-D2B81995E104}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{01AA0321-5A95-46CC-A2BB-D2B81995E104}.Debug|x86.Build.0 = Debug|Any CPU
+		{01AA0321-5A95-46CC-A2BB-D2B81995E104}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{01AA0321-5A95-46CC-A2BB-D2B81995E104}.Release|Any CPU.Build.0 = Release|Any CPU
+		{01AA0321-5A95-46CC-A2BB-D2B81995E104}.Release|x86.ActiveCfg = Release|Any CPU
+		{01AA0321-5A95-46CC-A2BB-D2B81995E104}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -99,6 +109,7 @@ Global
 		SolutionGuid = {08666673-FC05-494F-97E2-E7FE52425065}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		_Common\_Common.projitems*{01aa0321-5a95-46cc-a2bb-d2b81995e104}*SharedItemsImports = 5
 		_Common\_Common.projitems*{1464d682-160c-46f6-a2a9-1e5edc9398fa}*SharedItemsImports = 5
 		_Common\_Common.projitems*{1d5d1940-bb78-429e-beb8-1e24055f3fc6}*SharedItemsImports = 5
 		_Common\_Common.projitems*{32d03ae7-d56d-4f44-8346-1f114e8ed398}*SharedItemsImports = 5

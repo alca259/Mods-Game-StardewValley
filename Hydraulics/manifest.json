@@ -1,0 +1,21 @@
+{
+  /*
+   | This file is automatically updated by ModManifestBuilder
+   | when the project is compiled.
+   | 
+   | Changes made to this file may be overwritten.
+   | 
+   */
+  "$schema": "https://smapi.io/schemas/manifest.json",
+  "UniqueID": "Alca259.Hydraulics",
+  "Name": "Hydraulics",
+  "Author": "Alca259",
+  "Version": "3.1.1-Debug",
+  "Description": "Adds a fully functional subterrainian irrigation system to the game.",
+  "MinimumApiVersion": "4.5.2",
+  "MinimumGameVersion": "1.6.15",
+  "EntryDll": "Hydraulics.dll",
+  "UpdateKeys": [
+    "GitHub:alca259/Mods-Game-StardewValley"
+  ]
+}
