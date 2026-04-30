@@ -15,6 +15,12 @@
   "MinimumApiVersion": "4.5.2",
   "MinimumGameVersion": "1.6.15",
   "EntryDll": "Hydraulics.dll",
+  "Dependencies": [
+    {
+      "UniqueID": "Pathoschild.ContentPatcher",
+      "IsRequired": true
+    }
+  ],
   "UpdateKeys": [
     "GitHub:alca259/Mods-Game-StardewValley"
   ]

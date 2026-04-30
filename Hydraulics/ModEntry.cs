@@ -13,6 +13,7 @@ public partial class ModEntry : Mod
 {
     #region Fields
     private const string SaveDataKey = "hydraulic-network";
+    private const string PumpBigCraftableId = "Alca259.Hydraulics_WaterPump";
 
     private ModConfig _config = null!;
     private HydraulicNetwork _network = new();
@@ -37,6 +38,7 @@ public partial class ModEntry : Mod
         helper.Events.GameLoop.UpdateTicked += OnUpdateTicked;
         helper.Events.Input.ButtonsChanged += OnButtonsChanged;
         helper.Events.Input.CursorMoved += OnCursorMoved;
+        helper.Events.World.ObjectListChanged += OnObjectListChanged;
         helper.Events.Display.RenderedWorld += OnRenderedWorld;
     }
     #endregion
@@ -144,7 +146,44 @@ public partial class ModEntry : Mod
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
     {
         _network = HydraulicNetwork.FromSaveData(Helper.Data.ReadSaveData<HydraulicSaveData>(SaveDataKey));
+        SyncPumpsFromWorld();
         RecalculateAndApplyIrrigation();
+    }
+
+    private void OnObjectListChanged(object? sender, ObjectListChangedEventArgs e)
+    {
+        if (!_config.EnableMod || !Context.IsWorldReady)
+            return;
+
+        if (!HydraulicWorldRules.IsMainlandFarm(e.Location))
+            return;
+
+        bool changed = false;
+
+        foreach ((Vector2 tile, StardewValley.Object obj) in e.Added)
+        {
+            if (!IsHydraulicPumpObject(obj))
+                continue;
+
+            if (!HydraulicWorldRules.CanPlacePumpOnTile(e.Location, tile))
+                continue;
+
+            changed |= _network.TryAddPump(tile);
+        }
+
+        foreach ((Vector2 tile, StardewValley.Object? obj) in e.Removed)
+        {
+            if (obj is null || !IsHydraulicPumpObject(obj))
+                continue;
+
+            changed |= _network.TryRemovePump(tile);
+        }
+
+        if (changed)
+        {
+            RecalculateAndApplyIrrigation();
+            RequestIrrigationSync();
+        }
     }
 
     private void OnSaving(object? sender, SavingEventArgs e)
@@ -209,6 +248,14 @@ public partial class ModEntry : Mod
         if (_network.ContainsPipe(tile))
         {
             Monitor.Log("No puedes colocar una bomba en una casilla con tubería.", LogLevel.Warn);
+            return;
+        }
+
+        if (location.Objects.TryGetValue(tile, out StardewValley.Object? obj)
+            && obj is not null
+            && !IsHydraulicPumpObject(obj))
+        {
+            Monitor.Log("La casilla ya está ocupada por otro objeto.", LogLevel.Warn);
             return;
         }
 
@@ -301,6 +348,29 @@ public partial class ModEntry : Mod
                 dirt.state.Value = HoeDirt.watered;
             }
         }
+    }
+
+    private void SyncPumpsFromWorld()
+    {
+        Farm farm = Game1.getFarm();
+
+        foreach ((Vector2 tile, StardewValley.Object obj) in farm.Objects.Pairs)
+        {
+            if (!IsHydraulicPumpObject(obj))
+                continue;
+
+            if (!HydraulicWorldRules.CanPlacePumpOnTile(farm, tile))
+                continue;
+
+            _network.TryAddPump(tile);
+        }
+    }
+
+    private static bool IsHydraulicPumpObject(StardewValley.Object obj)
+    {
+        ArgumentNullException.ThrowIfNull(obj);
+        return obj.bigCraftable.Value
+            && string.Equals(obj.QualifiedItemId, $"(BC){PumpBigCraftableId}", StringComparison.Ordinal);
     }
 
     private void DrawPumpPlacementOverlay(SpriteBatch spriteBatch)

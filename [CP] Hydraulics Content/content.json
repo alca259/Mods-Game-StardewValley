@@ -1,0 +1,33 @@
+{
+  "Format": "2.0.0",
+  "Changes": [
+    {
+      "Action": "Load",
+      "Target": "Mods/Alca259.Hydraulics/WaterPump",
+      "FromFile": "assets/water_pump.png"
+    },
+    {
+      "Action": "EditData",
+      "Target": "Data/BigCraftables",
+      "Entries": {
+        "Alca259.Hydraulics_WaterPump": {
+          "Name": "Water Pump",
+          "DisplayName": "Water Pump",
+          "Description": "Extracts water from nearby wells or ponds into hydraulic pipes.",
+          "Price": 50,
+          "Fragility": 0,
+          "CanBePlacedOutdoors": true,
+          "CanBePlacedIndoors": false,
+          "Texture": "Mods/Alca259.Hydraulics/WaterPump"
+        }
+      }
+    },
+    {
+      "Action": "EditData",
+      "Target": "Data/CraftingRecipes",
+      "Entries": {
+        "Water Pump": "388 1/Home/Alca259.Hydraulics_WaterPump/true/default"
+      }
+    }
+  ]
+}

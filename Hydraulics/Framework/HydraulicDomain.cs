@@ -240,6 +240,16 @@ internal sealed class HydraulicNetwork
         return true;
     }
 
+    public bool TryRemovePump(Vector2 tile)
+    {
+        int index = _pumps.FindIndex(p => p.Tile == tile);
+        if (index < 0)
+            return false;
+
+        _pumps.RemoveAt(index);
+        return true;
+    }
+
     public WaterPumpMachine? FindAdjacentPump(Vector2 tile)
     {
         return _pumps.FirstOrDefault(p => p.IsTileAdjacent(tile));
