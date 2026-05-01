@@ -3,22 +3,67 @@
   "Changes": [
     {
       "Action": "Load",
-      "Target": "Mods/Alca259.Hydraulics/WaterPump",
-      "FromFile": "assets/water_pump.png"
+      "Target": "Mods/Alca259.Hydraulics/BronzeWaterPump",
+      "FromFile": "assets/bronze_water_pump.png"
+    },
+    {
+      "Action": "Load",
+      "Target": "Mods/Alca259.Hydraulics/SteelWaterPump",
+      "FromFile": "assets/steel_water_pump.png"
+    },
+    {
+      "Action": "Load",
+      "Target": "Mods/Alca259.Hydraulics/GoldWaterPump",
+      "FromFile": "assets/gold_water_pump.png"
+    },
+    {
+      "Action": "Load",
+      "Target": "Mods/Alca259.Hydraulics/IridiumWaterPump",
+      "FromFile": "assets/iridium_water_pump.png"
     },
     {
       "Action": "EditData",
       "Target": "Data/BigCraftables",
       "Entries": {
-        "Alca259.Hydraulics_WaterPump": {
-          "Name": "Water Pump",
-          "DisplayName": "Water Pump",
-          "Description": "Extracts water from nearby wells or ponds into hydraulic pipes.",
+        "Alca259.Hydraulics_BronzeWaterPump": {
+          "Name": "Bronze Water Pump",
+          "DisplayName": "Bronze Water Pump",
+          "Description": "Outputs 10 water. Requires 1 adjacent solar panel.",
           "Price": 50,
           "Fragility": 0,
           "CanBePlacedOutdoors": true,
           "CanBePlacedIndoors": false,
-          "Texture": "Mods/Alca259.Hydraulics/WaterPump"
+          "Texture": "Mods/Alca259.Hydraulics/BronzeWaterPump"
+        },
+        "Alca259.Hydraulics_SteelWaterPump": {
+          "Name": "Steel Water Pump",
+          "DisplayName": "Steel Water Pump",
+          "Description": "Outputs 25 water. Requires 1 adjacent solar panel.",
+          "Price": 100,
+          "Fragility": 0,
+          "CanBePlacedOutdoors": true,
+          "CanBePlacedIndoors": false,
+          "Texture": "Mods/Alca259.Hydraulics/SteelWaterPump"
+        },
+        "Alca259.Hydraulics_GoldWaterPump": {
+          "Name": "Gold Water Pump",
+          "DisplayName": "Gold Water Pump",
+          "Description": "Outputs 80 water. Requires 1 adjacent solar panel.",
+          "Price": 200,
+          "Fragility": 0,
+          "CanBePlacedOutdoors": true,
+          "CanBePlacedIndoors": false,
+          "Texture": "Mods/Alca259.Hydraulics/GoldWaterPump"
+        },
+        "Alca259.Hydraulics_IridiumWaterPump": {
+          "Name": "Iridium Water Pump",
+          "DisplayName": "Iridium Water Pump",
+          "Description": "Outputs 200 water. Requires 2 adjacent solar panels.",
+          "Price": 500,
+          "Fragility": 0,
+          "CanBePlacedOutdoors": true,
+          "CanBePlacedIndoors": false,
+          "Texture": "Mods/Alca259.Hydraulics/IridiumWaterPump"
         }
       }
     },
@@ -26,7 +71,10 @@
       "Action": "EditData",
       "Target": "Data/CraftingRecipes",
       "Entries": {
-        "Water Pump": "388 1/Home/Alca259.Hydraulics_WaterPump/true/default"
+        "Bronze Water Pump": "388 1/Home/Alca259.Hydraulics_BronzeWaterPump/true/Farming 2",
+        "Steel Water Pump": "388 1/Home/Alca259.Hydraulics_SteelWaterPump/true/Farming 4",
+        "Gold Water Pump": "388 1/Home/Alca259.Hydraulics_GoldWaterPump/true/Farming 6",
+        "Iridium Water Pump": "388 1/Home/Alca259.Hydraulics_IridiumWaterPump/true/Farming 8"
       }
     }
   ]
