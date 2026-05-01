@@ -256,9 +256,13 @@ public partial class ModEntry : Mod
             return;
 
         bool changed = false;
+        HashSet<Vector2> pumpsToRefresh = new();
 
         foreach ((Vector2 tile, StardewValley.Object obj) in e.Added)
         {
+            if (IsSolarPanel(obj))
+                AddAdjacentPumpTiles(tile, pumpsToRefresh);
+
             if (!TryGetPumpTier(obj, out WaterPumpTier tier))
                 continue;
 
@@ -273,10 +277,18 @@ public partial class ModEntry : Mod
 
         foreach ((Vector2 tile, StardewValley.Object? obj) in e.Removed)
         {
+            if (obj is not null && IsSolarPanel(obj))
+                AddAdjacentPumpTiles(tile, pumpsToRefresh);
+
             if (obj is null || !TryGetPumpTier(obj, out _))
                 continue;
 
             changed |= _network.TryRemovePump(tile);
+        }
+
+        foreach (Vector2 pumpTile in pumpsToRefresh)
+        {
+            RequestIrrigationSyncForPump(pumpTile, 1);
         }
 
         if (changed)
@@ -305,6 +317,8 @@ public partial class ModEntry : Mod
     {
         if (!_config.EnableMod || !Context.IsWorldReady)
             return;
+
+        DrawPumpStatusOverlay(e.SpriteBatch);
 
         if (_pipeEditMode)
         {
@@ -605,6 +619,25 @@ public partial class ModEntry : Mod
         return true;
     }
 
+    private static bool IsSolarPanel(StardewValley.Object obj)
+    {
+        ArgumentNullException.ThrowIfNull(obj);
+
+        return obj.bigCraftable.Value
+            && string.Equals(obj.QualifiedItemId, HydraulicConstants.SolarPanelId, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private void AddAdjacentPumpTiles(Vector2 tile, ISet<Vector2> pumpTiles)
+    {
+        ArgumentNullException.ThrowIfNull(pumpTiles);
+
+        foreach (Vector2 adjacentTile in HydraulicWorldRules.EnumerateCardinalNeighbors(tile))
+        {
+            if (_network.ContainsPump(adjacentTile))
+                pumpTiles.Add(adjacentTile);
+        }
+    }
+
     private void ApplyPipeDestroyRefund()
     {
         if (_config.PipeDestroyGoldRefund > 0)
@@ -681,6 +714,54 @@ public partial class ModEntry : Mod
     private static Color GetOverlayBlockedColor() => new(220, 40, 40, 220);
 
     private static Color GetOverlayNetworkTextColor() => Color.White;
+
+    private static Color GetOverlayPumpUnpoweredColor() => new(220, 50, 50, 220);
+
+    private static Color GetOverlayPumpPoweredIdleColor() => new(255, 220, 90, 220);
+
+    private static Color GetOverlayPumpProducingColor() => new(70, 200, 90, 220);
+
+    private void DrawPumpStatusOverlay(SpriteBatch spriteBatch)
+    {
+        if (!HydraulicWorldRules.IsMainlandFarm(Game1.currentLocation))
+            return;
+
+        Dictionary<Guid, HydraulicSubnetworkStatus> statusesById = _network.SubnetworkStatuses
+            .ToDictionary(status => status.Id);
+
+        int markerSize = Math.Max(4, Game1.pixelZoom + 1);
+
+        foreach (WaterPumpMachine pump in _network.Pumps)
+        {
+            bool isPowered = pump.PowerMode != PumpPowerMode.None;
+            bool isProducing = false;
+
+            if (isPowered
+                && _network.TryGetSubnetworkIdByPump(pump.Tile) is Guid subnetworkId
+                && statusesById.TryGetValue(subnetworkId, out HydraulicSubnetworkStatus status))
+            {
+                isProducing = status.MaxFlow > 0f && status.ConsumptionFlow > 0f;
+            }
+
+            Color indicatorColor = !isPowered
+                ? GetOverlayPumpUnpoweredColor()
+                : (isProducing ? GetOverlayPumpProducingColor() : GetOverlayPumpPoweredIdleColor());
+
+            Vector2 screen = Game1.GlobalToLocal(Game1.viewport, pump.Tile * Game1.tileSize);
+            int x = (int)screen.X + Game1.tileSize - markerSize - 8;
+            int y = (int)screen.Y - Game1.tileSize + 20;
+
+            spriteBatch.Draw(
+                Game1.staminaRect,
+                new Rectangle(x - 1, y - 1, markerSize + 2, markerSize + 2),
+                new Color(0, 0, 0, 150));
+
+            spriteBatch.Draw(
+                Game1.staminaRect,
+                new Rectangle(x, y, markerSize, markerSize),
+                indicatorColor);
+        }
+    }
 
     private void DrawSubnetworkFlowInfo(SpriteBatch spriteBatch)
     {

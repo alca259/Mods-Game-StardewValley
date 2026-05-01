@@ -50,7 +50,12 @@ internal sealed class WaterPumpMachine
             return true;
         }
 
-        int requiredPanels = Tier == WaterPumpTier.Iridium ? 2 : 1;
+        int requiredPanels = Tier switch
+        {
+            WaterPumpTier.Bronze => 0,
+            WaterPumpTier.Iridium => 2,
+            _ => 1,
+        };
         int panelCount = CountAdjacentSolarPanels(location);
 
         if (panelCount >= requiredPanels)
