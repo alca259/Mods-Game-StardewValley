@@ -10,7 +10,7 @@
   "UniqueID": "Zoryn.RegenMod",
   "Name": "Regen Mod",
   "Author": "Zoryn;Alca259",
-  "Version": "3.1.1-Debug",
+  "Version": "3.1.1",
   "Description": "Lets the player regenerate health and stamina based on config values.",
   "MinimumApiVersion": "4.5.2",
   "MinimumGameVersion": "1.6.15",

@@ -27,8 +27,8 @@
       "Entries": {
         "Alca259.Hydraulics_BronzeWaterPump": {
           "Name": "Bronze Water Pump",
-          "DisplayName": "Bronze Water Pump",
-          "Description": "Outputs 10 water. Requires 1 adjacent solar panel.",
+          "DisplayName": "{{i18n:pump.bronze.displayName}}",
+          "Description": "{{i18n:pump.bronze.description}}",
           "Price": 50,
           "Fragility": 0,
           "CanBePlacedOutdoors": true,
@@ -37,8 +37,8 @@
         },
         "Alca259.Hydraulics_SteelWaterPump": {
           "Name": "Steel Water Pump",
-          "DisplayName": "Steel Water Pump",
-          "Description": "Outputs 25 water. Requires 1 adjacent solar panel.",
+          "DisplayName": "{{i18n:pump.steel.displayName}}",
+          "Description": "{{i18n:pump.steel.description}}",
           "Price": 100,
           "Fragility": 0,
           "CanBePlacedOutdoors": true,
@@ -47,8 +47,8 @@
         },
         "Alca259.Hydraulics_GoldWaterPump": {
           "Name": "Gold Water Pump",
-          "DisplayName": "Gold Water Pump",
-          "Description": "Outputs 80 water. Requires 1 adjacent solar panel.",
+          "DisplayName": "{{i18n:pump.gold.displayName}}",
+          "Description": "{{i18n:pump.gold.description}}",
           "Price": 200,
           "Fragility": 0,
           "CanBePlacedOutdoors": true,
@@ -57,8 +57,8 @@
         },
         "Alca259.Hydraulics_IridiumWaterPump": {
           "Name": "Iridium Water Pump",
-          "DisplayName": "Iridium Water Pump",
-          "Description": "Outputs 200 water. Requires 2 adjacent solar panels.",
+          "DisplayName": "{{i18n:pump.iridium.displayName}}",
+          "Description": "{{i18n:pump.iridium.description}}",
           "Price": 500,
           "Fragility": 0,
           "CanBePlacedOutdoors": true,
@@ -71,10 +71,10 @@
       "Action": "EditData",
       "Target": "Data/CraftingRecipes",
       "Entries": {
-        "Bronze Water Pump": "388 1/Home/Alca259.Hydraulics_BronzeWaterPump/true/Farming 2",
-        "Steel Water Pump": "388 1/Home/Alca259.Hydraulics_SteelWaterPump/true/Farming 4",
-        "Gold Water Pump": "388 1/Home/Alca259.Hydraulics_GoldWaterPump/true/Farming 6",
-        "Iridium Water Pump": "388 1/Home/Alca259.Hydraulics_IridiumWaterPump/true/Farming 8"
+        "Bronze Water Pump": "388 50 787 1 334 5/Home/Alca259.Hydraulics_BronzeWaterPump/true/Farming 2",
+        "Steel Water Pump": "388 50 787 1 335 5/Home/Alca259.Hydraulics_SteelWaterPump/true/Farming 4",
+        "Gold Water Pump": "388 50 787 1 336 5/Home/Alca259.Hydraulics_GoldWaterPump/true/Farming 6",
+        "Iridium Water Pump": "388 50 787 1 337 5/Home/Alca259.Hydraulics_IridiumWaterPump/true/Farming 8"
       }
     }
   ]
