@@ -1,6 +1,6 @@
 {
   "pump.bronze.displayName": "Bronze Water Pump",
-  "pump.bronze.description": "Outputs 10 water. Requires 1 adjacent solar panel.",
+  "pump.bronze.description": "Outputs 10 water.",
   "pump.steel.displayName": "Steel Water Pump",
   "pump.steel.description": "Outputs 25 water. Requires 1 adjacent solar panel.",
   "pump.gold.displayName": "Gold Water Pump",
