@@ -38,6 +38,9 @@ internal static class HydraulicWorldRules
         if (location.Objects.ContainsKey(tile))
             return false;
 
+        if (tile.X < 0 || tile.Y < 0 || tile.X >= location.Map.Layers[0].LayerWidth || tile.Y >= location.Map.Layers[0].LayerHeight)
+            return false;
+
         if (!location.isTilePlaceable(tile))
             return false;
 

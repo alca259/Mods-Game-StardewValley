@@ -1,0 +1,13 @@
+{
+  "mod.enabled": "¿Mod habilitado?",
+  "hotkey.pipeEdit": "Alternar modo de edición de tuberías",
+  "energy.require": "Las bombas requieren energía",
+  "pipe.cost.gold": "Coste de oro para construir tubería",
+  "pipe.cost.copper": "Coste de mineral de cobre para construir tubería",
+  "pipe.refund.gold": "Reembolso de oro al destruir tubería",
+  "pipe.refund.copper": "Reembolso de mineral de cobre al destruir tubería",
+  "water.cost.perTile": "Coste de agua por casilla x100",
+  "water.sprinklerAnimation": "Reproducir animación de aspersor",
+  "log.configReloaded": "Configuración recargada",
+  "log.pipeEditMode": "Modo de edición de tuberías: {{state}}"
+}

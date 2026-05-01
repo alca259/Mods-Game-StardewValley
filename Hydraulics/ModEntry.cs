@@ -70,20 +70,14 @@ public partial class ModEntry : Mod
         {
             _config = Helper.ReadConfig<ModConfig>();
             _config.EnsureArguments();
-            Monitor.Log(Helper.Translation.Get("log.configReloaded"), LogLevel.Info);
+            Monitor.Log(Helper.Translation.Get("log.configReloaded"), LogLevel.Debug);
         }
 
         if (_config.TogglePipeEditModeKey.JustPressed())
         {
             _pipeEditMode = !_pipeEditMode;
             _isDraggingPipe = false;
-            Monitor.Log(Helper.Translation.Get("log.pipeEditMode", new { state = _pipeEditMode ? "ON" : "OFF" }), LogLevel.Info);
-        }
-
-        if (_config.ToggleGridOverlayKey.JustPressed())
-        {
-            _config.ShowGridOverlay = !_config.ShowGridOverlay;
-            Monitor.Log(Helper.Translation.Get("log.gridOverlay", new { state = _config.ShowGridOverlay ? "ON" : "OFF" }), LogLevel.Info);
+            Monitor.Log(Helper.Translation.Get("log.pipeEditMode", new { state = _pipeEditMode ? "ON" : "OFF" }), LogLevel.Debug);
         }
 
         if (!_pipeEditMode && e.Pressed.Contains(SButton.MouseRight))
@@ -93,29 +87,37 @@ public partial class ModEntry : Mod
 
         if (e.Pressed.Contains(SButton.MouseLeft) && Game1.player.CurrentTool is StardewValley.Tools.Hoe)
         {
-            RequestIrrigationSync();
+            Vector2 tilledTile = Helper.Input.GetCursorPosition().Tile;
+            if (_network.ContainsPipe(tilledTile))
+                RequestIrrigationSync();
         }
 
         if (Game1.player.ActiveObject is not null)
             return;
 
-        if (!_pipeEditMode || !CanEditAtCurrentLocation())
-            return;
-
-        if (e.Pressed.Contains(SButton.MouseLeft))
+        if (_pipeEditMode && CanEditAtCurrentLocation())
         {
-            _isDraggingPipe = true;
-            TryAddPipeAtCursor();
-        }
+            if (!CanPlayerEditPipesNow())
+            {
+                _isDraggingPipe = false;
+                return;
+            }
 
-        if (e.Released.Contains(SButton.MouseLeft))
-        {
-            _isDraggingPipe = false;
-        }
+            if (e.Pressed.Contains(SButton.MouseLeft))
+            {
+                _isDraggingPipe = true;
+                TryAddPipeAtCursor();
+            }
 
-        if (e.Pressed.Contains(SButton.MouseRight))
-        {
-            TryRemovePipeAtCursor();
+            if (e.Released.Contains(SButton.MouseLeft))
+            {
+                _isDraggingPipe = false;
+            }
+
+            if (e.Pressed.Contains(SButton.MouseRight))
+            {
+                TryRemovePipeAtCursor();
+            }
         }
     }
 
@@ -126,6 +128,12 @@ public partial class ModEntry : Mod
 
         if (!Context.IsWorldReady || !CanEditAtCurrentLocation())
             return;
+
+        if (!CanPlayerEditPipesNow())
+        {
+            _isDraggingPipe = false;
+            return;
+        }
 
         TryAddPipeAtCursor();
     }
@@ -143,8 +151,10 @@ public partial class ModEntry : Mod
         if (_pendingIrrigationSyncTicks <= 0)
             return;
 
-        RecalculateAndApplyIrrigation();
         _pendingIrrigationSyncTicks--;
+
+        if (_pendingIrrigationSyncTicks == 0)
+            RecalculateAndApplyIrrigation();
     }
 
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
@@ -214,17 +224,27 @@ public partial class ModEntry : Mod
         if (_pipeEditMode)
         {
             DrawHydraulics(e.SpriteBatch);
-
-            if (_config.ShowGridOverlay)
-            {
-                DrawPumpPlacementOverlay(e.SpriteBatch);
-            }
+            DrawPipePlacementOverlay(e.SpriteBatch);
         }
     }
 
     private bool CanEditAtCurrentLocation()
     {
         return HydraulicWorldRules.IsMainlandFarm(Game1.currentLocation);
+    }
+
+    private static bool CanPlayerEditPipesNow()
+    {
+        if (!Context.IsPlayerFree)
+            return false;
+
+        if (Game1.activeClickableMenu is not null)
+            return false;
+
+        if (Game1.dialogueUp)
+            return false;
+
+        return true;
     }
 
     private void TryAddPipeAtCursor()
@@ -272,7 +292,7 @@ public partial class ModEntry : Mod
         RequestIrrigationSync();
     }
 
-    private void RequestIrrigationSync(int ticks = 60)
+    private void RequestIrrigationSync(int ticks = 4)
     {
         if (ticks < 1)
             ticks = 1;
@@ -311,9 +331,9 @@ public partial class ModEntry : Mod
                         rowInAnimationTexture: 13,
                         position: pipe.Tile * Game1.tileSize,
                         color: Color.White,
-                        animationLength: 1,
+                        animationLength: 8,
                         flipped: false,
-                        animationInterval: 30f));
+                        animationInterval: 60f));
                 }
             }
         }
@@ -424,15 +444,15 @@ public partial class ModEntry : Mod
         return false;
     }
 
-    private static Color GetPoweredPipeColor() => new(66, 158, 255, 128);
+    private static Color GetPoweredPipeColor() => new(66, 158, 255, 64);
 
-    private static Color GetUnpoweredPipeColor() => new(255, 220, 0, 128);
+    private static Color GetUnpoweredPipeColor() => new(255, 220, 0, 64);
 
     private static Color GetOverlayPlaceableColor() => new(60, 200, 80, 220);
 
     private static Color GetOverlayBlockedColor() => new(220, 40, 40, 220);
 
-    private void DrawPumpPlacementOverlay(SpriteBatch spriteBatch)
+    private void DrawPipePlacementOverlay(SpriteBatch spriteBatch)
     {
         if (!_pipeEditMode || !CanEditAtCurrentLocation())
             return;

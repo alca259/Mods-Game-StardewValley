@@ -33,20 +33,6 @@ public partial class ModEntry
             setValue: value => _config.EnableMod = value
         );
 
-        configMenu.AddBoolOption(
-            mod: ModManifest,
-            name: () => T("overlay.show"),
-            getValue: () => _config.ShowGridOverlay,
-            setValue: value => _config.ShowGridOverlay = value
-        );
-
-        configMenu.AddKeybindList(
-            mod: ModManifest,
-            name: () => T("hotkey.overlay"),
-            getValue: () => _config.ToggleGridOverlayKey,
-            setValue: value => _config.ToggleGridOverlayKey = value
-        );
-
         configMenu.AddKeybindList(
             mod: ModManifest,
             name: () => T("hotkey.pipeEdit"),
@@ -109,13 +95,6 @@ public partial class ModEntry
             min: 1,
             max: 1000,
             interval: 1
-        );
-
-        configMenu.AddBoolOption(
-            mod: ModManifest,
-            name: () => T("water.indicator.show"),
-            getValue: () => _config.ShowWateredTileIndicator,
-            setValue: value => _config.ShowWateredTileIndicator = value
         );
 
         configMenu.AddBoolOption(

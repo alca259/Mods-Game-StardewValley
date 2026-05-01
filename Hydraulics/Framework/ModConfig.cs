@@ -9,17 +9,11 @@ internal sealed class ModConfig
     /// <summary>Indica si el mod está habilitado</summary>
     public bool EnableMod { get; set; } = true;
 
-    /// <summary>Indica si se muestra la superposición de cuadrícula para ayudar a colocar las tuberías.</summary>
-    public bool ShowGridOverlay { get; set; } = true;
-
     /// <summary>La tecla para recargar la configuración del mod sin reiniciar el juego.</summary>
     public KeybindList ReloadKey { get; set; } = new(SButton.F5);
 
     /// <summary>La tecla para alternar el modo de edición de tuberías, que permite colocar o quitar tuberías.</summary>
     public KeybindList TogglePipeEditModeKey { get; set; } = new(SButton.End);
-
-    /// <summary>La tecla para mostrar u ocultar la superposición de cuadrícula.</summary>
-    public KeybindList ToggleGridOverlayKey { get; set; } = new(SButton.Home);
 
     /// <summary>Whether pumps require energy (solar panel) to move water.</summary>
     public bool RequireEnergyForPumps { get; set; } = true;
@@ -38,9 +32,6 @@ internal sealed class ModConfig
 
     /// <summary>Establece el coste de agua por cada casilla regada por cada tubería.</summary>
     public float WaterCostPerTile { get; set; } = 0.25f;
-
-    /// <summary>Indica si se muestra un indicador en las casillas regadas.</summary>
-    public bool ShowWateredTileIndicator { get; set; } = true;
 
     /// <summary>Indica si se reproduce una animación de aspersor al regar las casillas.</summary>
     public bool PlaySprinklerAnimation { get; set; } = true;
