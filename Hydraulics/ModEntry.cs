@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
+using StardewValley.Menus;
 using StardewValley.TerrainFeatures;
 
 namespace Hydraulics;
@@ -89,7 +90,7 @@ public partial class ModEntry : Mod
         {
             Vector2 tilledTile = Helper.Input.GetCursorPosition().Tile;
             if (_network.ContainsPipe(tilledTile))
-                RequestIrrigationSync();
+                RequestIrrigationSyncForPipe(tilledTile);
         }
 
         if (Game1.player.ActiveObject is not null)
@@ -225,6 +226,7 @@ public partial class ModEntry : Mod
         {
             DrawHydraulics(e.SpriteBatch);
             DrawPipePlacementOverlay(e.SpriteBatch);
+            DrawSubnetworkFlowInfo(e.SpriteBatch);
         }
     }
 
@@ -288,8 +290,7 @@ public partial class ModEntry : Mod
         if (!_network.ContainsPump(tile))
             return;
 
-        RecalculateAndApplyIrrigation();
-        RequestIrrigationSync();
+        RequestIrrigationSyncForPump(tile);
     }
 
     private void RequestIrrigationSync(int ticks = 4)
@@ -299,6 +300,24 @@ public partial class ModEntry : Mod
 
         if (_pendingIrrigationSyncTicks < ticks)
             _pendingIrrigationSyncTicks = ticks;
+    }
+
+    private void RequestIrrigationSyncForPipe(Vector2 tile, int ticks = 4)
+    {
+        if (!_network.RecalculateSubnetworkAtTile(Game1.getFarm(), tile, _config.RequireEnergyForPumps, _config.WaterCostPerTile))
+            return;
+
+        RecalculateAndApplyIrrigation();
+        RequestIrrigationSync(ticks);
+    }
+
+    private void RequestIrrigationSyncForPump(Vector2 tile, int ticks = 4)
+    {
+        if (!_network.RecalculateSubnetworkAtPumpTile(Game1.getFarm(), tile, _config.RequireEnergyForPumps, _config.WaterCostPerTile))
+            return;
+
+        RecalculateAndApplyIrrigation();
+        RequestIrrigationSync(ticks);
     }
 
     private void DrawHydraulics(SpriteBatch spriteBatch)
@@ -451,6 +470,32 @@ public partial class ModEntry : Mod
     private static Color GetOverlayPlaceableColor() => new(60, 200, 80, 220);
 
     private static Color GetOverlayBlockedColor() => new(220, 40, 40, 220);
+
+    private static Color GetOverlayNetworkTextColor() => Color.White;
+
+    private void DrawSubnetworkFlowInfo(SpriteBatch spriteBatch)
+    {
+        foreach (HydraulicSubnetworkStatus status in _network.SubnetworkStatuses)
+        {
+            Vector2 screen = Game1.GlobalToLocal(Game1.viewport, status.LabelPumpTile * Game1.tileSize);
+            string networkLabel = $"#{status.Id.ToString()[..8]}";
+            string flowLabel = $"{status.ConsumptionFlow:0.##}/{status.MaxFlow:0.##}";
+
+            Utility.drawTextWithShadow(
+                spriteBatch,
+                networkLabel,
+                Game1.smallFont,
+                new Vector2(screen.X, screen.Y - (Game1.tileSize / 2f) - 24f),
+                GetOverlayNetworkTextColor());
+
+            Utility.drawTextWithShadow(
+                spriteBatch,
+                flowLabel,
+                Game1.smallFont,
+                new Vector2(screen.X, screen.Y - (Game1.tileSize / 2f) - 2f),
+                GetOverlayNetworkTextColor());
+        }
+    }
 
     private void DrawPipePlacementOverlay(SpriteBatch spriteBatch)
     {
