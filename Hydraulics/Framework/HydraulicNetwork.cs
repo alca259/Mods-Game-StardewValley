@@ -216,31 +216,40 @@ internal sealed class HydraulicNetwork
         _pipeToSubnetworkId.Clear();
         _pumpToSubnetworkId.Clear();
 
-        HashSet<Vector2> visited = new();
+        HashSet<Vector2> visitedPipes = new();
+        HashSet<Vector2> visitedPumps = new();
 
         foreach (Vector2 startTile in _pipes.Keys)
         {
-            if (!visited.Add(startTile))
+            if (!visitedPipes.Add(startTile))
                 continue;
 
-            Queue<Vector2> queue = new();
+            Queue<(Vector2 Tile, bool IsPump)> queue = new();
             HashSet<Vector2> componentTiles = new();
             HashSet<Vector2> componentPumps = new();
 
-            queue.Enqueue(startTile);
+            queue.Enqueue((startTile, false));
 
             while (queue.Count > 0)
             {
-                Vector2 current = queue.Dequeue();
-                componentTiles.Add(current);
+                (Vector2 current, bool isPump) = queue.Dequeue();
+
+                if (isPump)
+                {
+                    componentPumps.Add(current);
+                }
+                else
+                {
+                    componentTiles.Add(current);
+                }
 
                 foreach (Vector2 adjacent in HydraulicWorldRules.EnumerateCardinalNeighbors(current))
                 {
-                    if (_pipes.ContainsKey(adjacent) && visited.Add(adjacent))
-                        queue.Enqueue(adjacent);
+                    if (_pipes.ContainsKey(adjacent) && visitedPipes.Add(adjacent))
+                        queue.Enqueue((adjacent, false));
 
-                    if (ContainsPump(adjacent))
-                        componentPumps.Add(adjacent);
+                    if (_pumpByTile.ContainsKey(adjacent) && visitedPumps.Add(adjacent))
+                        queue.Enqueue((adjacent, true));
                 }
             }
 

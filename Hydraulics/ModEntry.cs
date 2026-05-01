@@ -307,7 +307,7 @@ public partial class ModEntry : Mod
             _pendingIrrigationSyncTicks = ticks;
     }
 
-    private void RequestIrrigationSyncForPipe(Vector2 tile, int ticks = 4)
+    private void RequestIrrigationSyncForPipe(Vector2 tile, int ticks = 60)
     {
         if (!_network.RecalculateSubnetworkAtTile(Game1.getFarm(), tile, _config.RequireEnergyForPumps, _config.WaterCostPerTile))
             return;
@@ -553,25 +553,58 @@ public partial class ModEntry : Mod
 
     private void DrawSubnetworkFlowInfo(SpriteBatch spriteBatch)
     {
+        List<Rectangle> occupiedBounds = new();
+
         foreach (HydraulicSubnetworkStatus status in _network.SubnetworkStatuses)
         {
             Vector2 screen = Game1.GlobalToLocal(Game1.viewport, status.LabelPumpTile * Game1.tileSize);
-            string networkLabel = $"#{status.Id.ToString()[..8]}";
+            string networkLabel = string.Empty;
             string flowLabel = $"{status.ConsumptionFlow:0.##}/{status.MaxFlow:0.##}";
 
+            Vector2 idSize = Vector2.Zero;
+#if DEBUG
+            networkLabel = $"#{status.Id.ToString()[..8]}";
+            idSize = Game1.smallFont.MeasureString(networkLabel);
+#endif
+            Vector2 flowSize = Game1.smallFont.MeasureString(flowLabel);
+
+            float centerX = screen.X + (Game1.tileSize / 2f);
+            float flowX = centerX - (flowSize.X / 2f);
+            float flowY = screen.Y - (Game1.tileSize / 2f) - 2f;
+            float idX = centerX - (idSize.X / 2f);
+            float idY = flowY - idSize.Y - 2f;
+
+            Rectangle idBounds = new((int)idX, (int)idY, (int)Math.Ceiling(idSize.X), (int)Math.Ceiling(idSize.Y));
+            Rectangle flowBounds = new((int)flowX, (int)flowY, (int)Math.Ceiling(flowSize.X), (int)Math.Ceiling(flowSize.Y));
+
+            while (occupiedBounds.Any(r => r.Intersects(idBounds) || r.Intersects(flowBounds)))
+            {
+                float offset = idSize.Y + flowSize.Y + 4f;
+                idY -= offset;
+                flowY -= offset;
+
+                idBounds = new Rectangle((int)idX, (int)idY, (int)Math.Ceiling(idSize.X), (int)Math.Ceiling(idSize.Y));
+                flowBounds = new Rectangle((int)flowX, (int)flowY, (int)Math.Ceiling(flowSize.X), (int)Math.Ceiling(flowSize.Y));
+            }
+
+#if DEBUG
             Utility.drawTextWithShadow(
                 spriteBatch,
                 networkLabel,
                 Game1.smallFont,
-                new Vector2(screen.X, screen.Y - (Game1.tileSize / 2f) - 24f),
+                new Vector2(idX, idY),
                 GetOverlayNetworkTextColor());
+#endif
 
             Utility.drawTextWithShadow(
                 spriteBatch,
                 flowLabel,
                 Game1.smallFont,
-                new Vector2(screen.X, screen.Y - (Game1.tileSize / 2f) - 2f),
+                new Vector2(flowX, flowY),
                 GetOverlayNetworkTextColor());
+
+            occupiedBounds.Add(idBounds);
+            occupiedBounds.Add(flowBounds);
         }
     }
 
