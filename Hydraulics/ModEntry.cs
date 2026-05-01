@@ -14,6 +14,7 @@ public partial class ModEntry : Mod
 {
     #region Fields
     private const string SaveDataKey = "hydraulic-network";
+    private const string IrrigationRequestMessageType = "irrigation-request";
     private const string BronzePumpBigCraftableId = "Alca259.Hydraulics_BronzeWaterPump";
     private const string SteelPumpBigCraftableId = "Alca259.Hydraulics_SteelWaterPump";
     private const string GoldPumpBigCraftableId = "Alca259.Hydraulics_GoldWaterPump";
@@ -23,7 +24,18 @@ public partial class ModEntry : Mod
     private HydraulicNetwork _network = new();
     private bool _pipeEditMode;
     private bool _isDraggingPipe;
+    private bool _isRemovingPipe;
+    private Point? _lastDraggedPipeTile;
+    private bool _lastDragWasRemoving;
     private int _pendingIrrigationSyncTicks;
+
+    private enum IrrigationRequestKind
+    {
+        PipeTile,
+        PumpTile,
+    }
+
+    private readonly record struct IrrigationRequestData(IrrigationRequestKind Kind, int TileX, int TileY);
     #endregion
 
     #region Override entry point
@@ -43,6 +55,7 @@ public partial class ModEntry : Mod
         helper.Events.Input.ButtonsChanged += OnButtonsChanged;
         helper.Events.Input.CursorMoved += OnCursorMoved;
         helper.Events.World.ObjectListChanged += OnObjectListChanged;
+        helper.Events.Multiplayer.ModMessageReceived += OnModMessageReceived;
         helper.Events.Display.RenderedWorld += OnRenderedWorld;
     }
     #endregion
@@ -78,6 +91,8 @@ public partial class ModEntry : Mod
         {
             _pipeEditMode = !_pipeEditMode;
             _isDraggingPipe = false;
+            _isRemovingPipe = false;
+            _lastDraggedPipeTile = null;
             Monitor.Log(Helper.Translation.Get("log.pipeEditMode", new { state = _pipeEditMode ? "ON" : "OFF" }), LogLevel.Debug);
         }
 
@@ -86,39 +101,86 @@ public partial class ModEntry : Mod
             TryRecalculateByPumpClick();
         }
 
-        if (e.Pressed.Contains(SButton.MouseLeft) && Game1.player.CurrentTool is StardewValley.Tools.Hoe)
+        if (!_pipeEditMode && e.Pressed.Contains(SButton.MouseLeft) && Game1.player.CurrentTool is StardewValley.Tools.Hoe)
         {
             Vector2 tilledTile = Helper.Input.GetCursorPosition().Tile;
             if (_network.ContainsPipe(tilledTile))
                 RequestIrrigationSyncForPipe(tilledTile);
         }
 
-        if (Game1.player.ActiveObject is not null)
-            return;
-
         if (_pipeEditMode && CanEditAtCurrentLocation())
         {
+            if (e.Pressed.Contains(SButton.MouseLeft))
+                Helper.Input.Suppress(SButton.MouseLeft);
+
+            if (e.Pressed.Contains(SButton.MouseRight))
+                Helper.Input.Suppress(SButton.MouseRight);
+
             if (!CanPlayerEditPipesNow())
             {
                 _isDraggingPipe = false;
+                _isRemovingPipe = false;
+                _lastDraggedPipeTile = null;
                 return;
             }
 
             if (e.Pressed.Contains(SButton.MouseLeft))
             {
                 _isDraggingPipe = true;
+                _isRemovingPipe = false;
+                _lastDraggedPipeTile = null;
                 TryAddPipeAtCursor();
             }
 
-            if (e.Released.Contains(SButton.MouseLeft))
+            if (e.Released.Contains(SButton.MouseLeft) && !_isRemovingPipe)
             {
                 _isDraggingPipe = false;
+                _lastDraggedPipeTile = null;
             }
 
             if (e.Pressed.Contains(SButton.MouseRight))
             {
+                _isDraggingPipe = true;
+                _isRemovingPipe = true;
+                _lastDraggedPipeTile = null;
                 TryRemovePipeAtCursor();
             }
+
+            if (e.Released.Contains(SButton.MouseRight) && _isRemovingPipe)
+            {
+                _isDraggingPipe = false;
+                _isRemovingPipe = false;
+                _lastDraggedPipeTile = null;
+            }
+        }
+    }
+
+    private void OnModMessageReceived(object? sender, ModMessageReceivedEventArgs e)
+    {
+        if (!_config.EnableMod || !Context.IsWorldReady)
+            return;
+
+        if (!CanMutateNetwork())
+            return;
+
+        if (!string.Equals(e.FromModID, ModManifest.UniqueID, StringComparison.Ordinal))
+            return;
+
+        if (!string.Equals(e.Type, IrrigationRequestMessageType, StringComparison.Ordinal))
+            return;
+
+        IrrigationRequestData request = e.ReadAs<IrrigationRequestData>();
+        Vector2 tile = new(request.TileX, request.TileY);
+
+        switch (request.Kind)
+        {
+            case IrrigationRequestKind.PipeTile:
+                RequestIrrigationSyncForPipe(tile);
+                break;
+
+            case IrrigationRequestKind.PumpTile:
+                RequestIrrigationSyncForPump(tile);
+                break;
         }
     }
 
@@ -133,10 +195,27 @@ public partial class ModEntry : Mod
         if (!CanPlayerEditPipesNow())
         {
             _isDraggingPipe = false;
+            _isRemovingPipe = false;
+            _lastDraggedPipeTile = null;
             return;
         }
 
-        TryAddPipeAtCursor();
+        Vector2 dragTile = Helper.Input.GetCursorPosition().Tile;
+        Point tilePoint = new((int)dragTile.X, (int)dragTile.Y);
+        if (_lastDraggedPipeTile is Point lastTile
+            && lastTile == tilePoint
+            && _lastDragWasRemoving == _isRemovingPipe)
+        {
+            return;
+        }
+
+        _lastDraggedPipeTile = tilePoint;
+        _lastDragWasRemoving = _isRemovingPipe;
+
+        if (_isRemovingPipe)
+            TryRemovePipeAtCursor();
+        else
+            TryAddPipeAtCursor();
     }
 
     private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
@@ -168,6 +247,9 @@ public partial class ModEntry : Mod
     private void OnObjectListChanged(object? sender, ObjectListChangedEventArgs e)
     {
         if (!_config.EnableMod || !Context.IsWorldReady)
+            return;
+
+        if (!CanMutateNetwork())
             return;
 
         if (!HydraulicWorldRules.IsMainlandFarm(e.Location))
@@ -214,6 +296,8 @@ public partial class ModEntry : Mod
         _network = new HydraulicNetwork();
         _pipeEditMode = false;
         _isDraggingPipe = false;
+        _isRemovingPipe = false;
+        _lastDraggedPipeTile = null;
         _pendingIrrigationSyncTicks = 0;
     }
 
@@ -235,6 +319,11 @@ public partial class ModEntry : Mod
         return HydraulicWorldRules.IsMainlandFarm(Game1.currentLocation);
     }
 
+    private static bool CanMutateNetwork()
+    {
+        return Context.IsMainPlayer;
+    }
+
     private static bool CanPlayerEditPipesNow()
     {
         if (!Context.IsPlayerFree)
@@ -251,6 +340,9 @@ public partial class ModEntry : Mod
 
     private void TryAddPipeAtCursor()
     {
+        if (!CanMutateNetwork())
+            return;
+
         Vector2 tile = Helper.Input.GetCursorPosition().Tile;
         GameLocation location = Game1.currentLocation;
         Guid? previousSubnetworkId = _network.TryGetSubnetworkIdByPipe(tile);
@@ -276,6 +368,9 @@ public partial class ModEntry : Mod
 
     private void TryRemovePipeAtCursor()
     {
+        if (!CanMutateNetwork())
+            return;
+
         Vector2 tile = Helper.Input.GetCursorPosition().Tile;
         Guid? targetSubnetworkId = _network.TryGetSubnetworkIdByPipe(tile);
 
@@ -291,6 +386,9 @@ public partial class ModEntry : Mod
 
     private void TryRecalculateByPumpClick()
     {
+        if (!CanMutateNetwork())
+            return;
+
         Vector2 tile = Helper.Input.GetCursorPosition().Tile;
         if (!_network.ContainsPump(tile))
             return;
@@ -309,6 +407,12 @@ public partial class ModEntry : Mod
 
     private void RequestIrrigationSyncForPipe(Vector2 tile, int ticks = 60)
     {
+        if (!CanMutateNetwork())
+        {
+            SendIrrigationRequest(IrrigationRequestKind.PipeTile, tile);
+            return;
+        }
+
         if (!_network.RecalculateSubnetworkAtTile(Game1.getFarm(), tile, _config.RequireEnergyForPumps, _config.WaterCostPerTile))
             return;
 
@@ -322,6 +426,12 @@ public partial class ModEntry : Mod
 
     private void RequestIrrigationSyncForPump(Vector2 tile, int ticks = 4)
     {
+        if (!CanMutateNetwork())
+        {
+            SendIrrigationRequest(IrrigationRequestKind.PumpTile, tile);
+            return;
+        }
+
         if (!_network.RecalculateSubnetworkAtPumpTile(Game1.getFarm(), tile, _config.RequireEnergyForPumps, _config.WaterCostPerTile))
             return;
 
@@ -333,8 +443,23 @@ public partial class ModEntry : Mod
         RequestIrrigationSync(ticks);
     }
 
+    private void SendIrrigationRequest(IrrigationRequestKind kind, Vector2 tile)
+    {
+        if (!Context.IsMultiplayer || Context.IsMainPlayer)
+            return;
+
+        Helper.Multiplayer.SendMessage(
+            new IrrigationRequestData(kind, (int)tile.X, (int)tile.Y),
+            IrrigationRequestMessageType,
+            new[] { ModManifest.UniqueID },
+            new[] { Game1.MasterPlayer.UniqueMultiplayerID });
+    }
+
     private void RequestIrrigationSyncForPipeEdit(Vector2 tile, Guid? previousSubnetworkId, int ticks = 4)
     {
+        if (!CanMutateNetwork())
+            return;
+
         Guid? currentSubnetworkId = _network.TryGetSubnetworkIdByPipe(tile);
         if (previousSubnetworkId is Guid previousId)
             _network.RecalculateSubnetworkById(Game1.getFarm(), previousId, _config.RequireEnergyForPumps, _config.WaterCostPerTile);
@@ -368,6 +493,9 @@ public partial class ModEntry : Mod
             .ToHashSet();
 
         _network.RecalculateWater(farm, _config.RequireEnergyForPumps, _config.WaterCostPerTile);
+
+        if (!CanMutateNetwork())
+            return;
 
         foreach (HydraulicPipe pipe in _network.Pipes.Values)
         {
@@ -408,6 +536,9 @@ public partial class ModEntry : Mod
             .ToHashSet();
 
         if (!_network.RecalculateSubnetworkById(farm, subnetworkId, _config.RequireEnergyForPumps, _config.WaterCostPerTile))
+            return;
+
+        if (!CanMutateNetwork())
             return;
 
         foreach (Vector2 tile in subnetworkTiles)
