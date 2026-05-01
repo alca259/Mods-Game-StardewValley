@@ -253,6 +253,7 @@ public partial class ModEntry : Mod
     {
         Vector2 tile = Helper.Input.GetCursorPosition().Tile;
         GameLocation location = Game1.currentLocation;
+        Guid? previousSubnetworkId = _network.TryGetSubnetworkIdByPipe(tile);
 
         if (!HydraulicWorldRules.CanPlacePipeOnTile(location, tile))
             return;
@@ -269,17 +270,21 @@ public partial class ModEntry : Mod
             return;
         }
 
-        RecalculateAndApplyIrrigation();
+        RequestIrrigationSyncForPipeEdit(tile, previousSubnetworkId);
         RequestIrrigationSync();
     }
 
     private void TryRemovePipeAtCursor()
     {
         Vector2 tile = Helper.Input.GetCursorPosition().Tile;
+        Guid? targetSubnetworkId = _network.TryGetSubnetworkIdByPipe(tile);
+
         if (_network.TryRemovePipe(tile))
         {
             ApplyPipeDestroyRefund();
-            RecalculateAndApplyIrrigation();
+            if (targetSubnetworkId is Guid id)
+                RecalculateAndApplySubnetworkIrrigation(id);
+
             RequestIrrigationSync();
         }
     }
@@ -307,7 +312,11 @@ public partial class ModEntry : Mod
         if (!_network.RecalculateSubnetworkAtTile(Game1.getFarm(), tile, _config.RequireEnergyForPumps, _config.WaterCostPerTile))
             return;
 
-        RecalculateAndApplyIrrigation();
+        Guid? subnetworkId = _network.TryGetSubnetworkIdByPipe(tile);
+        if (subnetworkId is not Guid id)
+            return;
+
+        RecalculateAndApplySubnetworkIrrigation(id);
         RequestIrrigationSync(ticks);
     }
 
@@ -316,7 +325,29 @@ public partial class ModEntry : Mod
         if (!_network.RecalculateSubnetworkAtPumpTile(Game1.getFarm(), tile, _config.RequireEnergyForPumps, _config.WaterCostPerTile))
             return;
 
-        RecalculateAndApplyIrrigation();
+        Guid? subnetworkId = _network.TryGetSubnetworkIdByPump(tile);
+        if (subnetworkId is not Guid id)
+            return;
+
+        RecalculateAndApplySubnetworkIrrigation(id);
+        RequestIrrigationSync(ticks);
+    }
+
+    private void RequestIrrigationSyncForPipeEdit(Vector2 tile, Guid? previousSubnetworkId, int ticks = 4)
+    {
+        Guid? currentSubnetworkId = _network.TryGetSubnetworkIdByPipe(tile);
+        if (previousSubnetworkId is Guid previousId)
+            _network.RecalculateSubnetworkById(Game1.getFarm(), previousId, _config.RequireEnergyForPumps, _config.WaterCostPerTile);
+
+        if (currentSubnetworkId is Guid currentId)
+            _network.RecalculateSubnetworkById(Game1.getFarm(), currentId, _config.RequireEnergyForPumps, _config.WaterCostPerTile);
+
+        if (previousSubnetworkId is Guid previousToApply)
+            RecalculateAndApplySubnetworkIrrigation(previousToApply);
+
+        if (currentSubnetworkId is Guid currentToApply && currentSubnetworkId != previousSubnetworkId)
+            RecalculateAndApplySubnetworkIrrigation(currentToApply);
+
         RequestIrrigationSync(ticks);
     }
 
@@ -327,9 +358,15 @@ public partial class ModEntry : Mod
             pipe.Draw(spriteBatch, _network.Pumps, GetUnpoweredPipeColor(), GetPoweredPipeColor());
         }
     }
+
     private void RecalculateAndApplyIrrigation()
     {
         Farm farm = Game1.getFarm();
+        HashSet<Vector2> previouslyWateredPipeTiles = _network.Pipes.Values
+            .Where(pipe => pipe.HasWater)
+            .Select(pipe => pipe.Tile)
+            .ToHashSet();
+
         _network.RecalculateWater(farm, _config.RequireEnergyForPumps, _config.WaterCostPerTile);
 
         foreach (HydraulicPipe pipe in _network.Pipes.Values)
@@ -344,7 +381,48 @@ public partial class ModEntry : Mod
             {
                 dirt.state.Value = HoeDirt.watered;
 
-                if (_config.PlaySprinklerAnimation)
+                if (_config.PlaySprinklerAnimation && !previouslyWateredPipeTiles.Contains(pipe.Tile))
+                {
+                    farm.temporarySprites.Add(new TemporaryAnimatedSprite(
+                        rowInAnimationTexture: 13,
+                        position: pipe.Tile * Game1.tileSize,
+                        color: Color.White,
+                        animationLength: 8,
+                        flipped: false,
+                        animationInterval: 60f));
+                }
+            }
+        }
+    }
+
+    private void RecalculateAndApplySubnetworkIrrigation(Guid subnetworkId)
+    {
+        Farm farm = Game1.getFarm();
+        HashSet<Vector2> subnetworkTiles = _network.GetSubnetworkPipeTiles(subnetworkId).ToHashSet();
+        if (subnetworkTiles.Count == 0)
+            return;
+
+        HashSet<Vector2> previouslyWateredPipeTiles = _network.Pipes.Values
+            .Where(pipe => pipe.HasWater && subnetworkTiles.Contains(pipe.Tile))
+            .Select(pipe => pipe.Tile)
+            .ToHashSet();
+
+        if (!_network.RecalculateSubnetworkById(farm, subnetworkId, _config.RequireEnergyForPumps, _config.WaterCostPerTile))
+            return;
+
+        foreach (Vector2 tile in subnetworkTiles)
+        {
+            if (!_network.Pipes.TryGetValue(tile, out HydraulicPipe? pipe) || !pipe.HasWater)
+                continue;
+
+            if (!farm.terrainFeatures.TryGetValue(pipe.Tile, out TerrainFeature? feature))
+                continue;
+
+            if (feature is HoeDirt dirt)
+            {
+                dirt.state.Value = HoeDirt.watered;
+
+                if (_config.PlaySprinklerAnimation && !previouslyWateredPipeTiles.Contains(pipe.Tile))
                 {
                     farm.temporarySprites.Add(new TemporaryAnimatedSprite(
                         rowInAnimationTexture: 13,

@@ -10,7 +10,7 @@ internal static class HydraulicWorldRules
     public static bool IsMainlandFarm(GameLocation location)
     {
         ArgumentNullException.ThrowIfNull(location);
-        return location.IsFarm;
+        return location.IsFarm && location.IsOutdoors;
     }
 
     public static IEnumerable<Vector2> EnumerateCardinalNeighbors(Vector2 tile)

@@ -23,7 +23,9 @@ internal sealed class HydraulicNetwork
 
     private readonly Dictionary<Vector2, HydraulicPipe> _pipes = new();
     private readonly List<WaterPumpMachine> _pumps = new();
+    private readonly Dictionary<Vector2, WaterPumpMachine> _pumpByTile = new();
     private readonly Dictionary<Vector2, Guid> _pipeToSubnetworkId = new();
+    private readonly Dictionary<Vector2, Guid> _pumpToSubnetworkId = new();
     private readonly Dictionary<Guid, SubnetworkInfo> _subnetworks = new();
 
     public IReadOnlyDictionary<Vector2, HydraulicPipe> Pipes => _pipes;
@@ -48,7 +50,7 @@ internal sealed class HydraulicNetwork
 
     public bool ContainsPump(Vector2 tile)
     {
-        return _pumps.Any(p => p.Tile == tile);
+        return _pumpByTile.ContainsKey(tile);
     }
 
     public bool TryAddPipe(Vector2 tile)
@@ -72,31 +74,42 @@ internal sealed class HydraulicNetwork
 
     public bool TryAddPump(Vector2 tile, WaterPumpTier tier)
     {
-        if (_pumps.Any(p => p.Tile == tile) || ContainsPipe(tile))
+        if (_pumpByTile.ContainsKey(tile) || ContainsPipe(tile))
             return false;
 
-        _pumps.Add(new WaterPumpMachine(tile, tier));
+        WaterPumpMachine pump = new(tile, tier);
+        _pumps.Add(pump);
+        _pumpByTile.Add(tile, pump);
         return true;
     }
 
     public bool TryRemovePump(Vector2 tile)
     {
-        int index = _pumps.FindIndex(p => p.Tile == tile);
-        if (index < 0)
+        if (!_pumpByTile.TryGetValue(tile, out WaterPumpMachine? pump))
             return false;
 
-        _pumps.RemoveAt(index);
+        _pumpByTile.Remove(tile);
+        _pumpToSubnetworkId.Remove(tile);
+        _pumps.Remove(pump);
         return true;
     }
 
     public void ClearPumps()
     {
         _pumps.Clear();
+        _pumpByTile.Clear();
+        _pumpToSubnetworkId.Clear();
     }
 
     public WaterPumpMachine? FindAdjacentPump(Vector2 tile)
     {
-        return _pumps.FirstOrDefault(p => p.IsTileAdjacent(tile));
+        foreach (Vector2 adjacent in HydraulicWorldRules.EnumerateCardinalNeighbors(tile))
+        {
+            if (_pumpByTile.TryGetValue(adjacent, out WaterPumpMachine? pump))
+                return pump;
+        }
+
+        return null;
     }
 
     public void RefreshConnectionsAround(Vector2 centerTile)
@@ -117,92 +130,19 @@ internal sealed class HydraulicNetwork
 
         RebuildSubnetworks();
 
-        foreach (SubnetworkInfo network in _subnetworks.Values)
-        {
-            network.MaxFlow = 0f;
-            network.ConsumptionFlow = 0f;
-        }
+        ResetSubnetworkMetrics();
 
         if (waterDemandPerTile <= 0f)
             waterDemandPerTile = 0.25f;
 
-        Dictionary<Vector2, WaterPumpMachine> activePumpsByTile = new();
-        foreach (WaterPumpMachine pump in _pumps)
-        {
-            if (pump.RefreshPowerState(location, requireEnergy))
-                activePumpsByTile[pump.Tile] = pump;
-        }
+        Dictionary<Vector2, WaterPumpMachine> activePumpsByTile = GetActivePumpsByTile(location, requireEnergy);
 
         if (activePumpsByTile.Count == 0 || _pipes.Count == 0)
             return;
 
         foreach (SubnetworkInfo network in _subnetworks.Values)
         {
-            HashSet<Vector2> activePumpTiles = new();
-            foreach (Vector2 pumpTile in network.PumpTiles)
-            {
-                if (activePumpsByTile.ContainsKey(pumpTile))
-                    activePumpTiles.Add(pumpTile);
-            }
-
-            if (activePumpTiles.Count == 0)
-                continue;
-
-            float componentCapacity = activePumpTiles.Sum(tile => activePumpsByTile[tile].WaterOutput);
-            network.MaxFlow = componentCapacity;
-
-            int irrigableTileCount = (int)Math.Floor(componentCapacity / waterDemandPerTile);
-            if (irrigableTileCount <= 0)
-                continue;
-
-            Queue<Vector2> waterQueue = new();
-            HashSet<Vector2> waterVisited = new();
-
-            foreach (Vector2 pumpTile in activePumpTiles)
-            {
-                foreach (Vector2 adjacent in HydraulicWorldRules.EnumerateCardinalNeighbors(pumpTile))
-                {
-                    if (!network.PipeTiles.Contains(adjacent) || !waterVisited.Add(adjacent))
-                        continue;
-
-                    waterQueue.Enqueue(adjacent);
-                }
-            }
-
-            int consumedTileCount = 0;
-
-            while (waterQueue.Count > 0)
-            {
-                Vector2 tile = waterQueue.Dequeue();
-                if (!_pipes.TryGetValue(tile, out HydraulicPipe? pipe))
-                    continue;
-
-                bool isIrrigableTile = location.terrainFeatures.TryGetValue(tile, out TerrainFeature? feature)
-                    && feature is HoeDirt;
-
-                if (isIrrigableTile && consumedTileCount >= irrigableTileCount)
-                    continue;
-
-                if (!pipe.HasWater)
-                {
-                    pipe.HasWater = true;
-                }
-
-                if (isIrrigableTile)
-                {
-                    consumedTileCount++;
-                }
-
-                foreach (Vector2 adjacent in HydraulicWorldRules.EnumerateCardinalNeighbors(tile))
-                {
-                    if (!network.PipeTiles.Contains(adjacent) || !waterVisited.Add(adjacent))
-                        continue;
-
-                    waterQueue.Enqueue(adjacent);
-                }
-            }
-
-            network.ConsumptionFlow = consumedTileCount * waterDemandPerTile;
+            RecalculateSubnetworkWater(network, location, waterDemandPerTile, activePumpsByTile);
         }
     }
 
@@ -216,11 +156,8 @@ internal sealed class HydraulicNetwork
 
     public Guid? TryGetSubnetworkIdByPump(Vector2 tile)
     {
-        foreach (SubnetworkInfo network in _subnetworks.Values)
-        {
-            if (network.PumpTiles.Contains(tile))
-                return network.Id;
-        }
+        if (_pumpToSubnetworkId.TryGetValue(tile, out Guid id))
+            return id;
 
         return null;
     }
@@ -229,24 +166,42 @@ internal sealed class HydraulicNetwork
     {
         ArgumentNullException.ThrowIfNull(location);
 
+        RebuildSubnetworks();
+
         Guid? targetId = TryGetSubnetworkIdByPipe(tile);
         if (targetId is null)
             return false;
 
-        RecalculateWater(location, requireEnergy, waterDemandPerTile);
-        return true;
+        return RecalculateSingleSubnetwork(location, targetId.Value, requireEnergy, waterDemandPerTile);
+    }
+
+    public bool RecalculateSubnetworkById(GameLocation location, Guid subnetworkId, bool requireEnergy, float waterDemandPerTile)
+    {
+        ArgumentNullException.ThrowIfNull(location);
+
+        RebuildSubnetworks();
+        return RecalculateSingleSubnetwork(location, subnetworkId, requireEnergy, waterDemandPerTile);
+    }
+
+    public IReadOnlyCollection<Vector2> GetSubnetworkPipeTiles(Guid subnetworkId)
+    {
+        if (_subnetworks.TryGetValue(subnetworkId, out SubnetworkInfo? network))
+            return network.PipeTiles.ToArray();
+
+        return Array.Empty<Vector2>();
     }
 
     public bool RecalculateSubnetworkAtPumpTile(GameLocation location, Vector2 tile, bool requireEnergy, float waterDemandPerTile)
     {
         ArgumentNullException.ThrowIfNull(location);
 
+        RebuildSubnetworks();
+
         Guid? targetId = TryGetSubnetworkIdByPump(tile);
         if (targetId is null)
             return false;
 
-        RecalculateWater(location, requireEnergy, waterDemandPerTile);
-        return true;
+        return RecalculateSingleSubnetwork(location, targetId.Value, requireEnergy, waterDemandPerTile);
     }
 
     private void RebuildSubnetworks(IReadOnlyDictionary<Guid, HashSet<Vector2>>? preferredById = null)
@@ -259,6 +214,7 @@ internal sealed class HydraulicNetwork
 
         _subnetworks.Clear();
         _pipeToSubnetworkId.Clear();
+        _pumpToSubnetworkId.Clear();
 
         HashSet<Vector2> visited = new();
 
@@ -288,14 +244,15 @@ internal sealed class HydraulicNetwork
                 }
             }
 
-            if (componentPumps.Count == 0)
-                continue;
-
             Guid id = ResolveSubnetworkId(componentTiles, previousById);
+            Vector2 labelTile = componentPumps.Count > 0
+                ? componentPumps.OrderBy(p => p.Y).ThenBy(p => p.X).First()
+                : componentTiles.OrderBy(p => p.Y).ThenBy(p => p.X).First();
+
             SubnetworkInfo info = new()
             {
                 Id = id,
-                LabelPumpTile = componentPumps.OrderBy(p => p.Y).ThenBy(p => p.X).First(),
+                LabelPumpTile = labelTile,
             };
 
             foreach (Vector2 pipeTile in componentTiles)
@@ -305,10 +262,129 @@ internal sealed class HydraulicNetwork
             }
 
             foreach (Vector2 pumpTile in componentPumps)
+            {
                 info.PumpTiles.Add(pumpTile);
+                _pumpToSubnetworkId[pumpTile] = id;
+            }
 
             _subnetworks[id] = info;
         }
+    }
+
+    private Dictionary<Vector2, WaterPumpMachine> GetActivePumpsByTile(GameLocation location, bool requireEnergy)
+    {
+        Dictionary<Vector2, WaterPumpMachine> activePumpsByTile = new();
+
+        foreach (WaterPumpMachine pump in _pumpByTile.Values)
+        {
+            if (pump.RefreshPowerState(location, requireEnergy))
+                activePumpsByTile[pump.Tile] = pump;
+        }
+
+        return activePumpsByTile;
+    }
+
+    private void ResetSubnetworkMetrics()
+    {
+        foreach (SubnetworkInfo network in _subnetworks.Values)
+        {
+            network.MaxFlow = 0f;
+            network.ConsumptionFlow = 0f;
+        }
+    }
+
+    private bool RecalculateSingleSubnetwork(GameLocation location, Guid subnetworkId, bool requireEnergy, float waterDemandPerTile)
+    {
+        if (waterDemandPerTile <= 0f)
+            waterDemandPerTile = 0.25f;
+
+        if (!_subnetworks.TryGetValue(subnetworkId, out SubnetworkInfo? targetNetwork))
+            return false;
+
+        foreach (Vector2 tile in targetNetwork.PipeTiles)
+        {
+            if (_pipes.TryGetValue(tile, out HydraulicPipe? pipe))
+                pipe.HasWater = false;
+        }
+
+        targetNetwork.MaxFlow = 0f;
+        targetNetwork.ConsumptionFlow = 0f;
+
+        Dictionary<Vector2, WaterPumpMachine> activePumpsByTile = GetActivePumpsByTile(location, requireEnergy);
+        if (activePumpsByTile.Count == 0)
+            return true;
+
+        RecalculateSubnetworkWater(targetNetwork, location, waterDemandPerTile, activePumpsByTile);
+        return true;
+    }
+
+    private void RecalculateSubnetworkWater(
+        SubnetworkInfo network,
+        GameLocation location,
+        float waterDemandPerTile,
+        IReadOnlyDictionary<Vector2, WaterPumpMachine> activePumpsByTile)
+    {
+        HashSet<Vector2> activePumpTiles = new();
+        foreach (Vector2 pumpTile in network.PumpTiles)
+        {
+            if (activePumpsByTile.ContainsKey(pumpTile))
+                activePumpTiles.Add(pumpTile);
+        }
+
+        if (activePumpTiles.Count == 0)
+            return;
+
+        float componentCapacity = activePumpTiles.Sum(tile => activePumpsByTile[tile].WaterOutput);
+        network.MaxFlow = componentCapacity;
+
+        int maxConsumableTilledTiles = (int)Math.Floor(componentCapacity / waterDemandPerTile);
+        if (maxConsumableTilledTiles <= 0)
+            return;
+
+        Queue<Vector2> waterQueue = new();
+        HashSet<Vector2> waterVisited = new();
+
+        foreach (Vector2 pumpTile in activePumpTiles)
+        {
+            foreach (Vector2 adjacent in HydraulicWorldRules.EnumerateCardinalNeighbors(pumpTile))
+            {
+                if (!network.PipeTiles.Contains(adjacent) || !waterVisited.Add(adjacent))
+                    continue;
+
+                waterQueue.Enqueue(adjacent);
+            }
+        }
+
+        int consumedTilledTiles = 0;
+
+        while (waterQueue.Count > 0)
+        {
+            Vector2 tile = waterQueue.Dequeue();
+            if (!_pipes.TryGetValue(tile, out HydraulicPipe? pipe))
+                continue;
+
+            bool isIrrigableTile = location.terrainFeatures.TryGetValue(tile, out TerrainFeature? feature)
+                && feature is HoeDirt;
+
+            if (isIrrigableTile && consumedTilledTiles >= maxConsumableTilledTiles)
+                continue;
+
+            if (!pipe.HasWater)
+                pipe.HasWater = true;
+
+            if (isIrrigableTile)
+                consumedTilledTiles++;
+
+            foreach (Vector2 adjacent in HydraulicWorldRules.EnumerateCardinalNeighbors(tile))
+            {
+                if (!network.PipeTiles.Contains(adjacent) || !waterVisited.Add(adjacent))
+                    continue;
+
+                waterQueue.Enqueue(adjacent);
+            }
+        }
+
+        network.ConsumptionFlow = consumedTilledTiles * waterDemandPerTile;
     }
 
     private static Guid ResolveSubnetworkId(HashSet<Vector2> componentTiles, IReadOnlyDictionary<Guid, HashSet<Vector2>> previousById)
@@ -343,7 +419,7 @@ internal sealed class HydraulicNetwork
                 Id = network.Id,
                 Pipes = network.PipeTiles.Select(tile => new TileSaveData((int)tile.X, (int)tile.Y)).ToList(),
                 Pumps = network.PumpTiles
-                    .Select(tile => _pumps.FirstOrDefault(p => p.Tile == tile))
+                    .Select(tile => _pumpByTile.GetValueOrDefault(tile))
                     .Where(p => p is not null)
                     .Select(p => new PumpSaveData((int)p!.Tile.X, (int)p.Tile.Y, p.Tier))
                     .ToList(),
