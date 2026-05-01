@@ -13,7 +13,10 @@ public partial class ModEntry : Mod
 {
     #region Fields
     private const string SaveDataKey = "hydraulic-network";
-    private const string PumpBigCraftableId = "Alca259.Hydraulics_WaterPump";
+    private const string BronzePumpBigCraftableId = "Alca259.Hydraulics_BronzeWaterPump";
+    private const string SteelPumpBigCraftableId = "Alca259.Hydraulics_SteelWaterPump";
+    private const string GoldPumpBigCraftableId = "Alca259.Hydraulics_GoldWaterPump";
+    private const string IridiumPumpBigCraftableId = "Alca259.Hydraulics_IridiumWaterPump";
 
     private ModConfig _config = null!;
     private HydraulicNetwork _network = new();
@@ -67,14 +70,20 @@ public partial class ModEntry : Mod
         {
             _config = Helper.ReadConfig<ModConfig>();
             _config.EnsureArguments();
-            Monitor.Log("Config reloaded", LogLevel.Info);
+            Monitor.Log(Helper.Translation.Get("log.configReloaded"), LogLevel.Info);
         }
 
         if (_config.TogglePipeEditModeKey.JustPressed())
         {
             _pipeEditMode = !_pipeEditMode;
             _isDraggingPipe = false;
-            Monitor.Log($"Pipe edit mode: {(_pipeEditMode ? "ON" : "OFF")}", LogLevel.Info);
+            Monitor.Log(Helper.Translation.Get("log.pipeEditMode", new { state = _pipeEditMode ? "ON" : "OFF" }), LogLevel.Info);
+        }
+
+        if (_config.ToggleGridOverlayKey.JustPressed())
+        {
+            _config.ShowGridOverlay = !_config.ShowGridOverlay;
+            Monitor.Log(Helper.Translation.Get("log.gridOverlay", new { state = _config.ShowGridOverlay ? "ON" : "OFF" }), LogLevel.Info);
         }
 
         if (!_pipeEditMode && e.Pressed.Contains(SButton.MouseRight))
@@ -86,6 +95,9 @@ public partial class ModEntry : Mod
         {
             RequestIrrigationSync();
         }
+
+        if (Game1.player.ActiveObject is not null)
+            return;
 
         if (!_pipeEditMode || !CanEditAtCurrentLocation())
             return;
@@ -154,7 +166,7 @@ public partial class ModEntry : Mod
 
         foreach ((Vector2 tile, StardewValley.Object obj) in e.Added)
         {
-            if (!IsHydraulicPumpObject(obj))
+            if (!TryGetPumpTier(obj, out WaterPumpTier tier))
                 continue;
 
             if (_network.ContainsPipe(tile))
@@ -163,12 +175,12 @@ public partial class ModEntry : Mod
                 changed = true;
             }
 
-            changed |= _network.TryAddPump(tile);
+            changed |= _network.TryAddPump(tile, tier);
         }
 
         foreach ((Vector2 tile, StardewValley.Object? obj) in e.Removed)
         {
-            if (obj is null || !IsHydraulicPumpObject(obj))
+            if (obj is null || !TryGetPumpTier(obj, out _))
                 continue;
 
             changed |= _network.TryRemovePump(tile);
@@ -202,7 +214,11 @@ public partial class ModEntry : Mod
         if (_pipeEditMode)
         {
             DrawHydraulics(e.SpriteBatch);
-            DrawPumpPlacementOverlay(e.SpriteBatch);
+
+            if (_config.ShowGridOverlay)
+            {
+                DrawPumpPlacementOverlay(e.SpriteBatch);
+            }
         }
     }
 
@@ -225,6 +241,12 @@ public partial class ModEntry : Mod
         if (!_network.TryAddPipe(tile))
             return;
 
+        if (!TryApplyPipeBuildCost())
+        {
+            _network.TryRemovePipe(tile);
+            return;
+        }
+
         RecalculateAndApplyIrrigation();
         RequestIrrigationSync();
     }
@@ -234,6 +256,7 @@ public partial class ModEntry : Mod
         Vector2 tile = Helper.Input.GetCursorPosition().Tile;
         if (_network.TryRemovePipe(tile))
         {
+            ApplyPipeDestroyRefund();
             RecalculateAndApplyIrrigation();
             RequestIrrigationSync();
         }
@@ -262,7 +285,7 @@ public partial class ModEntry : Mod
     {
         foreach (HydraulicPipe pipe in _network.Pipes.Values)
         {
-            pipe.Draw(spriteBatch, _network.Pumps);
+            pipe.Draw(spriteBatch, _network.Pumps, GetUnpoweredPipeColor(), GetPoweredPipeColor());
         }
 
         DrawPumps(spriteBatch);
@@ -274,9 +297,9 @@ public partial class ModEntry : Mod
         {
             Color color = pump.PowerMode switch
             {
-                PumpPowerMode.SolarPanel => new Color(255, 170, 40),
-                PumpPowerMode.DebugBypass => new Color(80, 230, 120),
-                _ => new Color(120, 120, 120),
+                PumpPowerMode.SolarPanel => GetPoweredObjectColor(),
+                PumpPowerMode.DebugBypass => GetPoweredObjectColor(),
+                _ => GetUnpoweredObjectColor(),
             };
 
             Vector2 screen = Game1.GlobalToLocal(Game1.viewport, pump.Tile * Game1.tileSize);
@@ -296,7 +319,7 @@ public partial class ModEntry : Mod
     private void RecalculateAndApplyIrrigation()
     {
         Farm farm = Game1.getFarm();
-        _network.RecalculateWater(farm, _config.RequireEnergyForPumps);
+        _network.RecalculateWater(farm, _config.RequireEnergyForPumps, _config.WaterCostPerTile);
 
         foreach (HydraulicPipe pipe in _network.Pipes.Values)
         {
@@ -309,6 +332,17 @@ public partial class ModEntry : Mod
             if (feature is HoeDirt dirt)
             {
                 dirt.state.Value = HoeDirt.watered;
+
+                if (_config.PlaySprinklerAnimation)
+                {
+                    farm.temporarySprites.Add(new TemporaryAnimatedSprite(
+                        rowInAnimationTexture: 13,
+                        position: pipe.Tile * Game1.tileSize,
+                        color: Color.White,
+                        animationLength: 4,
+                        flipped: false,
+                        animationInterval: 30f));
+                }
             }
         }
     }
@@ -316,40 +350,187 @@ public partial class ModEntry : Mod
     private void SyncPumpsFromWorld()
     {
         Farm farm = Game1.getFarm();
+        _network.ClearPumps();
 
         foreach ((Vector2 tile, StardewValley.Object obj) in farm.Objects.Pairs)
         {
-            if (!IsHydraulicPumpObject(obj))
+            if (!TryGetPumpTier(obj, out WaterPumpTier tier))
                 continue;
 
-            _network.TryAddPump(tile);
+            _network.TryAddPump(tile, tier);
         }
     }
 
-    private static bool IsHydraulicPumpObject(StardewValley.Object obj)
+    private bool TryApplyPipeBuildCost()
+    {
+        if (_config.PipeBuildGoldCost > 0 && Game1.player.Money < _config.PipeBuildGoldCost)
+            return false;
+
+        if (_config.PipeBuildCopperOreCost > 0)
+        {
+            int playerOreCount = Game1.player.Items
+                .Where(item => item is not null && item.QualifiedItemId == "(O)378")
+                .Sum(item => item?.Stack ?? 0);
+
+            if (playerOreCount < _config.PipeBuildCopperOreCost)
+                return false;
+        }
+
+        if (_config.PipeBuildGoldCost > 0)
+            Game1.player.Money -= _config.PipeBuildGoldCost;
+
+        if (_config.PipeBuildCopperOreCost > 0)
+            RemoveItemFromInventory("(O)378", _config.PipeBuildCopperOreCost);
+
+        return true;
+    }
+
+    private void ApplyPipeDestroyRefund()
+    {
+        if (_config.PipeDestroyGoldRefund > 0)
+            Game1.player.Money += _config.PipeDestroyGoldRefund;
+
+        if (_config.PipeDestroyCopperOreRefund > 0)
+            Game1.player.addItemToInventoryBool(ItemRegistry.Create("(O)378", _config.PipeDestroyCopperOreRefund));
+    }
+
+    private static void RemoveItemFromInventory(string qualifiedItemId, int amount)
+    {
+        if (amount <= 0)
+            return;
+
+        int remaining = amount;
+        IList<Item?> items = Game1.player.Items;
+
+        for (int i = 0; i < items.Count && remaining > 0; i++)
+        {
+            Item? item = items[i];
+            if (item is null || !string.Equals(item.QualifiedItemId, qualifiedItemId, StringComparison.Ordinal))
+                continue;
+
+            int take = Math.Min(item.Stack, remaining);
+            item.Stack -= take;
+            remaining -= take;
+
+            if (item.Stack <= 0)
+                items[i] = null;
+        }
+    }
+
+    private static bool TryGetPumpTier(StardewValley.Object obj, out WaterPumpTier tier)
     {
         ArgumentNullException.ThrowIfNull(obj);
-        return obj.bigCraftable.Value
-            && string.Equals(obj.QualifiedItemId, $"(BC){PumpBigCraftableId}", StringComparison.Ordinal);
+
+        tier = WaterPumpTier.Bronze;
+        if (!obj.bigCraftable.Value)
+            return false;
+
+        if (string.Equals(obj.QualifiedItemId, $"(BC){BronzePumpBigCraftableId}", StringComparison.Ordinal))
+        {
+            tier = WaterPumpTier.Bronze;
+            return true;
+        }
+
+        if (string.Equals(obj.QualifiedItemId, $"(BC){SteelPumpBigCraftableId}", StringComparison.Ordinal))
+        {
+            tier = WaterPumpTier.Steel;
+            return true;
+        }
+
+        if (string.Equals(obj.QualifiedItemId, $"(BC){GoldPumpBigCraftableId}", StringComparison.Ordinal))
+        {
+            tier = WaterPumpTier.Gold;
+            return true;
+        }
+
+        if (string.Equals(obj.QualifiedItemId, $"(BC){IridiumPumpBigCraftableId}", StringComparison.Ordinal))
+        {
+            tier = WaterPumpTier.Iridium;
+            return true;
+        }
+
+        return false;
     }
+
+    private Color GetPoweredPipeColor() => new(66, 158, 255);
+
+    private Color GetUnpoweredPipeColor() => new(255, 220, 0);
+
+    private Color GetPoweredObjectColor() => new(80, 230, 120);
+
+    private Color GetUnpoweredObjectColor() => new(120, 120, 120);
+
+    private Color GetOverlayPlaceableColor() => new(40, 160, 255, 90);
+
+    private Color GetOverlayBlockedColor() => new(220, 40, 40, 90);
+
+    private Color GetOverlayPoweredGridColor() => new(66, 158, 255, 40);
+
+    private Color GetOverlayUnpoweredGridColor() => new(255, 220, 0, 35);
+
+    private Color GetOverlayPoweredObjectColor() => new(80, 230, 120, 70);
+
+    private Color GetOverlayUnpoweredObjectColor() => new(120, 120, 120, 70);
 
     private void DrawPumpPlacementOverlay(SpriteBatch spriteBatch)
     {
         if (!_pipeEditMode || !CanEditAtCurrentLocation())
             return;
 
+        DrawGridStateOverlay(spriteBatch);
+
         Vector2 tile = Helper.Input.GetCursorPosition().Tile;
         GameLocation location = Game1.currentLocation;
         bool canPlace = HydraulicWorldRules.CanPlacePipeOnTile(location, tile) && !_network.ContainsPump(tile);
         Color color = canPlace
-            ? new Color(40, 160, 255, 90)
-            : new Color(220, 40, 40, 90);
+            ? GetOverlayPlaceableColor()
+            : GetOverlayBlockedColor();
 
         Vector2 screen = Game1.GlobalToLocal(Game1.viewport, tile * Game1.tileSize);
         spriteBatch.Draw(
             Game1.staminaRect,
             new Rectangle((int)screen.X, (int)screen.Y, Game1.tileSize, Game1.tileSize),
             color);
+    }
+
+    private void DrawGridStateOverlay(SpriteBatch spriteBatch)
+    {
+        foreach (HydraulicPipe pipe in _network.Pipes.Values)
+        {
+            Color gridColor = pipe.HasWater ? GetOverlayPoweredGridColor() : GetOverlayUnpoweredGridColor();
+            Vector2 pipeScreen = Game1.GlobalToLocal(Game1.viewport, pipe.Tile * Game1.tileSize);
+
+            spriteBatch.Draw(
+                Game1.staminaRect,
+                new Rectangle((int)pipeScreen.X, (int)pipeScreen.Y, Game1.tileSize, Game1.tileSize),
+                gridColor);
+
+            if (_config.ShowWateredTileIndicator && pipe.HasWater)
+            {
+                int iconSize = Game1.pixelZoom * 2;
+                spriteBatch.Draw(
+                    Game1.staminaRect,
+                    new Rectangle((int)pipeScreen.X + Game1.pixelZoom, (int)pipeScreen.Y + Game1.pixelZoom, iconSize, iconSize),
+                    new Color(66, 158, 255, 190));
+            }
+        }
+
+        foreach (WaterPumpMachine pump in _network.Pumps)
+        {
+            bool powered = pump.PowerMode is PumpPowerMode.SolarPanel or PumpPowerMode.DebugBypass;
+            Color objectColor = powered ? GetOverlayPoweredObjectColor() : GetOverlayUnpoweredObjectColor();
+            Vector2 screen = Game1.GlobalToLocal(Game1.viewport, pump.Tile * Game1.tileSize);
+            int inset = Game1.pixelZoom;
+
+            spriteBatch.Draw(
+                Game1.staminaRect,
+                new Rectangle(
+                    (int)screen.X + inset,
+                    (int)screen.Y + inset,
+                    Game1.tileSize - (inset * 2),
+                    Game1.tileSize - (inset * 2)),
+                objectColor);
+        }
     }
 
     #endregion

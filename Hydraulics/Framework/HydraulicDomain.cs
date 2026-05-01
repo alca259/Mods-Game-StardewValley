@@ -11,16 +11,36 @@ internal enum PumpPowerMode
     DebugBypass = 2,
 }
 
+internal enum WaterPumpTier
+{
+    Bronze = 0,
+    Steel = 1,
+    Gold = 2,
+    Iridium = 3,
+}
+
 internal sealed class WaterPumpMachine
 {
     public Vector2 Tile { get; }
 
+    public WaterPumpTier Tier { get; }
+
     public PumpPowerMode PowerMode { get; private set; }
 
-    public WaterPumpMachine(Vector2 tile)
+    public WaterPumpMachine(Vector2 tile, WaterPumpTier tier)
     {
         Tile = tile;
+        Tier = tier;
     }
+
+    public float WaterOutput => Tier switch
+    {
+        WaterPumpTier.Bronze => 10f,
+        WaterPumpTier.Steel => 25f,
+        WaterPumpTier.Gold => 80f,
+        WaterPumpTier.Iridium => 200f,
+        _ => 0f,
+    };
 
     public bool RefreshPowerState(GameLocation location, bool requireEnergy)
     {
@@ -46,9 +66,10 @@ internal sealed class WaterPumpMachine
             return true;
         }
 
-        bool hasSolar = IsAdjacentToSolarPanel(location);
+        int requiredPanels = Tier == WaterPumpTier.Iridium ? 2 : 1;
+        int panelCount = CountAdjacentSolarPanels(location);
 
-        if (hasSolar)
+        if (panelCount >= requiredPanels)
         {
             PowerMode = PumpPowerMode.SolarPanel;
             return true;
@@ -78,18 +99,19 @@ internal sealed class WaterPumpMachine
         return false;
     }
 
-    private bool IsAdjacentToSolarPanel(GameLocation location)
+    private int CountAdjacentSolarPanels(GameLocation location)
     {
+        int count = 0;
         foreach (Vector2 neighbor in HydraulicWorldRules.EnumerateCardinalNeighbors(Tile))
         {
             if (!location.Objects.TryGetValue(neighbor, out StardewValley.Object? obj) || obj is null)
                 continue;
 
             if (string.Equals(obj.QualifiedItemId, "(BC)SolarPanel", StringComparison.OrdinalIgnoreCase))
-                return true;
+                count++;
         }
 
-        return false;
+        return count;
     }
 
     private static bool IsCardinalNeighbor(Vector2 a, Vector2 b)
@@ -129,7 +151,7 @@ internal sealed class HydraulicPipe
         ConnectionMask = mask;
     }
 
-    public void Draw(SpriteBatch spriteBatch, IReadOnlyList<WaterPumpMachine> pumps)
+    public void Draw(SpriteBatch spriteBatch, IReadOnlyList<WaterPumpMachine> pumps, Color unpoweredColor, Color poweredColor)
     {
         ArgumentNullException.ThrowIfNull(spriteBatch);
         ArgumentNullException.ThrowIfNull(pumps);
@@ -137,7 +159,7 @@ internal sealed class HydraulicPipe
         int centerStart = (CellPixels - CorePixels) / 2;
         int centerEnd = centerStart + CorePixels;
         int zoom = Game1.pixelZoom;
-        Color color = HasWater ? new Color(66, 158, 255) : new Color(255, 220, 0);
+        Color color = HasWater ? poweredColor : unpoweredColor;
 
         byte renderMask = ConnectionMask;
         if (pumps.Any(p => p.Tile == new Vector2(Tile.X, Tile.Y - 1))) renderMask |= 1;
@@ -231,12 +253,12 @@ internal sealed class HydraulicNetwork
         return true;
     }
 
-    public bool TryAddPump(Vector2 tile)
+    public bool TryAddPump(Vector2 tile, WaterPumpTier tier)
     {
         if (_pumps.Any(p => p.Tile == tile) || ContainsPipe(tile))
             return false;
 
-        _pumps.Add(new WaterPumpMachine(tile));
+        _pumps.Add(new WaterPumpMachine(tile, tier));
         return true;
     }
 
@@ -248,6 +270,11 @@ internal sealed class HydraulicNetwork
 
         _pumps.RemoveAt(index);
         return true;
+    }
+
+    public void ClearPumps()
+    {
+        _pumps.Clear();
     }
 
     public WaterPumpMachine? FindAdjacentPump(Vector2 tile)
@@ -264,7 +291,7 @@ internal sealed class HydraulicNetwork
         }
     }
 
-    public void RecalculateWater(GameLocation location, bool requireEnergy)
+    public void RecalculateWater(GameLocation location, bool requireEnergy, float waterDemandPerTile)
     {
         ArgumentNullException.ThrowIfNull(location);
 
@@ -288,6 +315,19 @@ internal sealed class HydraulicNetwork
             }
         }
 
+        if (waterDemandPerTile <= 0f)
+            waterDemandPerTile = 0.25f;
+
+        float totalCapacity = _pumps
+            .Where(p => p.PowerMode is PumpPowerMode.SolarPanel or PumpPowerMode.DebugBypass)
+            .Sum(p => p.WaterOutput);
+
+        int irrigableTileCount = (int)Math.Floor(totalCapacity / waterDemandPerTile);
+        if (irrigableTileCount <= 0)
+            return;
+
+        int wateredCount = 0;
+
         while (queue.Count > 0)
         {
             Vector2 tile = queue.Dequeue();
@@ -295,6 +335,10 @@ internal sealed class HydraulicNetwork
                 continue;
 
             pipe.HasWater = true;
+
+            wateredCount++;
+            if (wateredCount >= irrigableTileCount)
+                break;
 
             foreach (Vector2 adjacent in HydraulicWorldRules.EnumerateCardinalNeighbors(tile))
             {
@@ -311,7 +355,7 @@ internal sealed class HydraulicNetwork
         return new HydraulicSaveData
         {
             Pipes = _pipes.Keys.Select(tile => new TileSaveData((int)tile.X, (int)tile.Y)).ToList(),
-            Pumps = _pumps.Select(p => new PumpSaveData((int)p.Tile.X, (int)p.Tile.Y)).ToList(),
+            Pumps = _pumps.Select(p => new PumpSaveData((int)p.Tile.X, (int)p.Tile.Y, p.Tier)).ToList(),
         };
     }
 
@@ -326,7 +370,7 @@ internal sealed class HydraulicNetwork
 
         foreach (PumpSaveData pump in data.Pumps)
         {
-            network.TryAddPump(new Vector2(pump.X, pump.Y));
+            network.TryAddPump(new Vector2(pump.X, pump.Y), pump.Tier);
         }
 
         return network;
@@ -415,4 +459,4 @@ internal sealed class HydraulicSaveData
 
 internal readonly record struct TileSaveData(int X, int Y);
 
-internal readonly record struct PumpSaveData(int X, int Y);
+internal readonly record struct PumpSaveData(int X, int Y, WaterPumpTier Tier);

@@ -1,3 +1,19 @@
 {
-  "ModName": ""
+  "mod.enabled": "Mod Enabled?",
+  "overlay.show": "Show Grid Overlay",
+  "hotkey.overlay": "Toggle Grid Overlay",
+  "hotkey.pipeEdit": "Toggle Pipe Edit Mode",
+  "energy.require": "Require Energy For Pumps",
+  "pipe.cost.gold": "Pipe Build Gold Cost",
+  "pipe.cost.copper": "Pipe Build Copper Ore Cost",
+  "pipe.refund.gold": "Pipe Destroy Gold Refund",
+  "pipe.refund.copper": "Pipe Destroy Copper Ore Refund",
+  "water.cost.perTile": "Water Cost Per Tile x100",
+  "water.indicator.show": "Show Watered Tile Indicator",
+  "water.sprinklerAnimation": "Play Sprinkler Animation",
+  "overlay.pipePlaceable": "Pipe tile is placeable",
+  "overlay.pipeBlocked": "Pipe tile is blocked",
+  "log.configReloaded": "Config reloaded",
+  "log.pipeEditMode": "Pipe edit mode: {{state}}",
+  "log.gridOverlay": "Grid overlay: {{state}}"
 }
