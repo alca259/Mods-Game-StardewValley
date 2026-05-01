@@ -7,7 +7,7 @@ internal readonly struct HydraulicConstants
     public const string CopperOreId = "(O)378";
 
     /// <summary>El ID del panel solar en el juego.</summary>
-    public const string SolarPanelId = "(BC)SolarPanel";
+    public const string SolarPanelId = "(BC)231";
 
     /// <summary>El ID del pozo en el juego.</summary>
     public const string BuildingWellId = "Well";
