@@ -3,6 +3,7 @@ using StardewModdingAPI.Utilities;
 
 namespace Hydraulics.Framework;
 
+/// <summary>Configuración del mod</summary>
 internal sealed class ModConfig
 {
     /// <summary>Indica si el mod está habilitado</summary>
@@ -37,7 +38,7 @@ internal sealed class ModConfig
 
     /// <summary>Establece el coste de agua por cada casilla regada por cada tubería.</summary>
     public float WaterCostPerTile { get; set; } = 0.25f;
-    
+
     /// <summary>Indica si se muestra un indicador en las casillas regadas.</summary>
     public bool ShowWateredTileIndicator { get; set; } = true;
 
@@ -49,17 +50,27 @@ internal sealed class ModConfig
     {
         if (PipeBuildGoldCost < 0)
             PipeBuildGoldCost = 0;
+        else if (PipeBuildGoldCost > 1000)
+            PipeBuildGoldCost = 1000;
 
         if (PipeBuildCopperOreCost < 0)
             PipeBuildCopperOreCost = 0;
+        else if (PipeBuildCopperOreCost > 50)
+            PipeBuildCopperOreCost = 50;
 
         if (PipeDestroyGoldRefund < 0)
             PipeDestroyGoldRefund = 0;
+        else if (PipeDestroyGoldRefund > 1000)
+            PipeDestroyGoldRefund = 1000;
 
         if (PipeDestroyCopperOreRefund < 0)
             PipeDestroyCopperOreRefund = 0;
+        else if (PipeDestroyCopperOreRefund > 50)
+            PipeDestroyCopperOreRefund = 50;
 
-        if (WaterCostPerTile <= 0)
+        if (WaterCostPerTile < 0.00f || float.IsNegative(WaterCostPerTile))
             WaterCostPerTile = 0.25f;
+        else if (WaterCostPerTile > 10.00f || float.IsPositiveInfinity(WaterCostPerTile))
+            WaterCostPerTile = 10.00f;
     }
 }

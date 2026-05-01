@@ -287,35 +287,7 @@ public partial class ModEntry : Mod
         {
             pipe.Draw(spriteBatch, _network.Pumps, GetUnpoweredPipeColor(), GetPoweredPipeColor());
         }
-
-        DrawPumps(spriteBatch);
     }
-
-    private void DrawPumps(SpriteBatch spriteBatch)
-    {
-        foreach (WaterPumpMachine pump in _network.Pumps)
-        {
-            Color color = pump.PowerMode switch
-            {
-                PumpPowerMode.SolarPanel => GetPoweredObjectColor(),
-                PumpPowerMode.DebugBypass => GetPoweredObjectColor(),
-                _ => GetUnpoweredObjectColor(),
-            };
-
-            Vector2 screen = Game1.GlobalToLocal(Game1.viewport, pump.Tile * Game1.tileSize);
-            int inset = Game1.pixelZoom * 2;
-
-            spriteBatch.Draw(
-                Game1.staminaRect,
-                new Rectangle(
-                    (int)screen.X + inset,
-                    (int)screen.Y + inset,
-                    Game1.tileSize - (inset * 2),
-                    Game1.tileSize - (inset * 2)),
-                color);
-        }
-    }
-
     private void RecalculateAndApplyIrrigation()
     {
         Farm farm = Game1.getFarm();
@@ -339,7 +311,7 @@ public partial class ModEntry : Mod
                         rowInAnimationTexture: 13,
                         position: pipe.Tile * Game1.tileSize,
                         color: Color.White,
-                        animationLength: 4,
+                        animationLength: 1,
                         flipped: false,
                         animationInterval: 30f));
                 }
@@ -369,7 +341,7 @@ public partial class ModEntry : Mod
         if (_config.PipeBuildCopperOreCost > 0)
         {
             int playerOreCount = Game1.player.Items
-                .Where(item => item is not null && item.QualifiedItemId == "(O)378")
+                .Where(item => item is not null && item.QualifiedItemId == HydraulicConstants.CopperOreId)
                 .Sum(item => item?.Stack ?? 0);
 
             if (playerOreCount < _config.PipeBuildCopperOreCost)
@@ -380,7 +352,7 @@ public partial class ModEntry : Mod
             Game1.player.Money -= _config.PipeBuildGoldCost;
 
         if (_config.PipeBuildCopperOreCost > 0)
-            RemoveItemFromInventory("(O)378", _config.PipeBuildCopperOreCost);
+            RemoveItemFromInventory(HydraulicConstants.CopperOreId, _config.PipeBuildCopperOreCost);
 
         return true;
     }
@@ -391,7 +363,7 @@ public partial class ModEntry : Mod
             Game1.player.Money += _config.PipeDestroyGoldRefund;
 
         if (_config.PipeDestroyCopperOreRefund > 0)
-            Game1.player.addItemToInventoryBool(ItemRegistry.Create("(O)378", _config.PipeDestroyCopperOreRefund));
+            Game1.player.addItemToInventoryBool(ItemRegistry.Create(HydraulicConstants.CopperOreId, _config.PipeDestroyCopperOreRefund));
     }
 
     private static void RemoveItemFromInventory(string qualifiedItemId, int amount)
@@ -452,86 +424,53 @@ public partial class ModEntry : Mod
         return false;
     }
 
-    private Color GetPoweredPipeColor() => new(66, 158, 255);
+    private static Color GetPoweredPipeColor() => new(66, 158, 255, 128);
 
-    private Color GetUnpoweredPipeColor() => new(255, 220, 0);
+    private static Color GetUnpoweredPipeColor() => new(255, 220, 0, 128);
 
-    private Color GetPoweredObjectColor() => new(80, 230, 120);
+    private static Color GetOverlayPlaceableColor() => new(60, 200, 80, 220);
 
-    private Color GetUnpoweredObjectColor() => new(120, 120, 120);
-
-    private Color GetOverlayPlaceableColor() => new(40, 160, 255, 90);
-
-    private Color GetOverlayBlockedColor() => new(220, 40, 40, 90);
-
-    private Color GetOverlayPoweredGridColor() => new(66, 158, 255, 40);
-
-    private Color GetOverlayUnpoweredGridColor() => new(255, 220, 0, 35);
-
-    private Color GetOverlayPoweredObjectColor() => new(80, 230, 120, 70);
-
-    private Color GetOverlayUnpoweredObjectColor() => new(120, 120, 120, 70);
+    private static Color GetOverlayBlockedColor() => new(220, 40, 40, 220);
 
     private void DrawPumpPlacementOverlay(SpriteBatch spriteBatch)
     {
         if (!_pipeEditMode || !CanEditAtCurrentLocation())
             return;
 
-        DrawGridStateOverlay(spriteBatch);
-
         Vector2 tile = Helper.Input.GetCursorPosition().Tile;
         GameLocation location = Game1.currentLocation;
-        bool canPlace = HydraulicWorldRules.CanPlacePipeOnTile(location, tile) && !_network.ContainsPump(tile);
+        bool canPlace = HydraulicWorldRules.CanPlacePipeOnTile(location, tile)
+            && !_network.ContainsPump(tile)
+            && !_network.ContainsPipe(tile);
         Color color = canPlace
             ? GetOverlayPlaceableColor()
             : GetOverlayBlockedColor();
 
         Vector2 screen = Game1.GlobalToLocal(Game1.viewport, tile * Game1.tileSize);
+        int x = (int)screen.X;
+        int y = (int)screen.Y;
+        int size = Game1.tileSize;
+        int border = Math.Max(1, Game1.pixelZoom / 2);
+
         spriteBatch.Draw(
             Game1.staminaRect,
-            new Rectangle((int)screen.X, (int)screen.Y, Game1.tileSize, Game1.tileSize),
+            new Rectangle(x, y, size, border),
+            color);
+
+        spriteBatch.Draw(
+            Game1.staminaRect,
+            new Rectangle(x, y + size - border, size, border),
+            color);
+
+        spriteBatch.Draw(
+            Game1.staminaRect,
+            new Rectangle(x, y, border, size),
+            color);
+
+        spriteBatch.Draw(
+            Game1.staminaRect,
+            new Rectangle(x + size - border, y, border, size),
             color);
     }
-
-    private void DrawGridStateOverlay(SpriteBatch spriteBatch)
-    {
-        foreach (HydraulicPipe pipe in _network.Pipes.Values)
-        {
-            Color gridColor = pipe.HasWater ? GetOverlayPoweredGridColor() : GetOverlayUnpoweredGridColor();
-            Vector2 pipeScreen = Game1.GlobalToLocal(Game1.viewport, pipe.Tile * Game1.tileSize);
-
-            spriteBatch.Draw(
-                Game1.staminaRect,
-                new Rectangle((int)pipeScreen.X, (int)pipeScreen.Y, Game1.tileSize, Game1.tileSize),
-                gridColor);
-
-            if (_config.ShowWateredTileIndicator && pipe.HasWater)
-            {
-                int iconSize = Game1.pixelZoom * 2;
-                spriteBatch.Draw(
-                    Game1.staminaRect,
-                    new Rectangle((int)pipeScreen.X + Game1.pixelZoom, (int)pipeScreen.Y + Game1.pixelZoom, iconSize, iconSize),
-                    new Color(66, 158, 255, 190));
-            }
-        }
-
-        foreach (WaterPumpMachine pump in _network.Pumps)
-        {
-            bool powered = pump.PowerMode is PumpPowerMode.SolarPanel or PumpPowerMode.DebugBypass;
-            Color objectColor = powered ? GetOverlayPoweredObjectColor() : GetOverlayUnpoweredObjectColor();
-            Vector2 screen = Game1.GlobalToLocal(Game1.viewport, pump.Tile * Game1.tileSize);
-            int inset = Game1.pixelZoom;
-
-            spriteBatch.Draw(
-                Game1.staminaRect,
-                new Rectangle(
-                    (int)screen.X + inset,
-                    (int)screen.Y + inset,
-                    Game1.tileSize - (inset * 2),
-                    Game1.tileSize - (inset * 2)),
-                objectColor);
-        }
-    }
-
     #endregion
 }
