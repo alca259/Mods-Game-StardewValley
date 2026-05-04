@@ -11,21 +11,29 @@ internal sealed class WaterPumpMachine
 
     public PumpPowerMode PowerMode { get; private set; }
 
+    /// <summary>Crea una bomba de agua en la casilla y nivel indicados.</summary>
     public WaterPumpMachine(Vector2 tile, WaterPumpTier tier)
     {
         Tile = tile;
         Tier = tier;
     }
 
-    public float WaterOutput => Tier switch
+    /// <summary>Obtiene el caudal de la bomba según su nivel y la configuración activa.</summary>
+    public float GetWaterOutput(ModConfig config)
     {
-        WaterPumpTier.Bronze => 10f,
-        WaterPumpTier.Steel => 25f,
-        WaterPumpTier.Gold => 80f,
-        WaterPumpTier.Iridium => 200f,
-        _ => 0f,
-    };
+        ArgumentNullException.ThrowIfNull(config);
 
+        return Tier switch
+        {
+            WaterPumpTier.Bronze => config.BronzePumpWaterOutput,
+            WaterPumpTier.Steel => config.SteelPumpWaterOutput,
+            WaterPumpTier.Gold => config.GoldPumpWaterOutput,
+            WaterPumpTier.Iridium => config.IridiumPumpWaterOutput,
+            _ => 0f,
+        };
+    }
+
+    /// <summary>Actualiza el estado de energía de la bomba para la ubicación actual.</summary>
     public bool RefreshPowerState(GameLocation location, bool requireEnergy)
     {
         ArgumentNullException.ThrowIfNull(location);
@@ -53,8 +61,10 @@ internal sealed class WaterPumpMachine
         int requiredPanels = Tier switch
         {
             WaterPumpTier.Bronze => 0,
+            WaterPumpTier.Steel => 0,
+            WaterPumpTier.Gold => 1,
             WaterPumpTier.Iridium => 2,
-            _ => 1,
+            _ => 0, // impossible
         };
         int panelCount = CountAdjacentSolarPanels(location);
 
@@ -68,11 +78,13 @@ internal sealed class WaterPumpMachine
         return false;
     }
 
+    /// <summary>Indica si una casilla es adyacente cardinal a la bomba.</summary>
     public bool IsTileAdjacent(Vector2 tile)
     {
         return IsCardinalNeighbor(Tile, tile);
     }
 
+    /// <summary>Comprueba si la bomba está junto a agua o a un pozo.</summary>
     private bool IsAdjacentToWaterOrWell(GameLocation location)
     {
         foreach (Vector2 neighbor in HydraulicWorldRules.EnumerateCardinalNeighbors(Tile))
@@ -88,6 +100,7 @@ internal sealed class WaterPumpMachine
         return false;
     }
 
+    /// <summary>Cuenta los paneles solares adyacentes a la bomba.</summary>
     private int CountAdjacentSolarPanels(GameLocation location)
     {
         int count = 0;
@@ -103,6 +116,7 @@ internal sealed class WaterPumpMachine
         return count;
     }
 
+    /// <summary>Comprueba si dos casillas son vecinas cardinales.</summary>
     private static bool IsCardinalNeighbor(Vector2 a, Vector2 b)
     {
         int dx = (int)Math.Abs(a.X - b.X);

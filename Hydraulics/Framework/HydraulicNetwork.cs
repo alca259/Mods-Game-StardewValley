@@ -43,16 +43,19 @@ internal sealed class HydraulicNetwork
         }
     }
 
+    /// <summary>Comprueba si existe una tubería en la casilla indicada.</summary>
     public bool ContainsPipe(Vector2 tile)
     {
         return _pipes.ContainsKey(tile);
     }
 
+    /// <summary>Comprueba si existe una bomba en la casilla indicada.</summary>
     public bool ContainsPump(Vector2 tile)
     {
         return _pumpByTile.ContainsKey(tile);
     }
 
+    /// <summary>Intenta añadir una tubería en la casilla especificada.</summary>
     public bool TryAddPipe(Vector2 tile)
     {
         if (_pipes.ContainsKey(tile) || ContainsPump(tile))
@@ -63,6 +66,7 @@ internal sealed class HydraulicNetwork
         return true;
     }
 
+    /// <summary>Intenta eliminar la tubería de la casilla indicada.</summary>
     public bool TryRemovePipe(Vector2 tile)
     {
         if (!_pipes.Remove(tile))
@@ -72,6 +76,7 @@ internal sealed class HydraulicNetwork
         return true;
     }
 
+    /// <summary>Intenta añadir una bomba del nivel indicado en la casilla especificada.</summary>
     public bool TryAddPump(Vector2 tile, WaterPumpTier tier)
     {
         if (_pumpByTile.ContainsKey(tile) || ContainsPipe(tile))
@@ -83,6 +88,7 @@ internal sealed class HydraulicNetwork
         return true;
     }
 
+    /// <summary>Intenta eliminar la bomba de la casilla indicada.</summary>
     public bool TryRemovePump(Vector2 tile)
     {
         if (!_pumpByTile.TryGetValue(tile, out WaterPumpMachine? pump))
@@ -94,6 +100,7 @@ internal sealed class HydraulicNetwork
         return true;
     }
 
+    /// <summary>Elimina todas las bombas registradas en la red.</summary>
     public void ClearPumps()
     {
         _pumps.Clear();
@@ -101,6 +108,7 @@ internal sealed class HydraulicNetwork
         _pumpToSubnetworkId.Clear();
     }
 
+    /// <summary>Busca una bomba adyacente en los cuatro lados de la casilla indicada.</summary>
     public WaterPumpMachine? FindAdjacentPump(Vector2 tile)
     {
         foreach (Vector2 adjacent in HydraulicWorldRules.EnumerateCardinalNeighbors(tile))
@@ -112,6 +120,7 @@ internal sealed class HydraulicNetwork
         return null;
     }
 
+    /// <summary>Actualiza las conexiones de tuberías alrededor de la casilla central indicada.</summary>
     public void RefreshConnectionsAround(Vector2 centerTile)
     {
         foreach (Vector2 tile in HydraulicWorldRules.EnumerateCardinalPlusCenter(centerTile))
@@ -121,9 +130,11 @@ internal sealed class HydraulicNetwork
         }
     }
 
-    public void RecalculateWater(GameLocation location, bool requireEnergy, float waterDemandPerTile)
+    /// <summary>Recalcula el estado hídrico de toda la red según la configuración actual.</summary>
+    public void RecalculateWater(GameLocation location, ModConfig config)
     {
         ArgumentNullException.ThrowIfNull(location);
+        ArgumentNullException.ThrowIfNull(config);
 
         foreach (HydraulicPipe pipe in _pipes.Values)
             pipe.HasWater = false;
@@ -132,20 +143,22 @@ internal sealed class HydraulicNetwork
 
         ResetSubnetworkMetrics();
 
+        float waterDemandPerTile = config.WaterCostPerTile;
         if (waterDemandPerTile <= 0f)
             waterDemandPerTile = 0.25f;
 
-        Dictionary<Vector2, WaterPumpMachine> activePumpsByTile = GetActivePumpsByTile(location, requireEnergy);
+        Dictionary<Vector2, WaterPumpMachine> activePumpsByTile = GetActivePumpsByTile(location, config);
 
         if (activePumpsByTile.Count == 0 || _pipes.Count == 0)
             return;
 
         foreach (SubnetworkInfo network in _subnetworks.Values)
         {
-            RecalculateSubnetworkWater(network, location, waterDemandPerTile, activePumpsByTile);
+            RecalculateSubnetworkWater(network, location, config, waterDemandPerTile, activePumpsByTile);
         }
     }
 
+    /// <summary>Obtiene el identificador de subred asociado a una tubería, si está disponible.</summary>
     public Guid? TryGetSubnetworkIdByPipe(Vector2 tile)
     {
         if (_pipeToSubnetworkId.TryGetValue(tile, out Guid id))
@@ -154,6 +167,7 @@ internal sealed class HydraulicNetwork
         return null;
     }
 
+    /// <summary>Obtiene el identificador de subred asociado a una bomba, si está disponible.</summary>
     public Guid? TryGetSubnetworkIdByPump(Vector2 tile)
     {
         if (_pumpToSubnetworkId.TryGetValue(tile, out Guid id))
@@ -162,9 +176,11 @@ internal sealed class HydraulicNetwork
         return null;
     }
 
-    public bool RecalculateSubnetworkAtTile(GameLocation location, Vector2 tile, bool requireEnergy, float waterDemandPerTile)
+    /// <summary>Recalcula la subred asociada a la casilla de tubería indicada.</summary>
+    public bool RecalculateSubnetworkAtTile(GameLocation location, Vector2 tile, ModConfig config)
     {
         ArgumentNullException.ThrowIfNull(location);
+        ArgumentNullException.ThrowIfNull(config);
 
         RebuildSubnetworks();
 
@@ -172,17 +188,20 @@ internal sealed class HydraulicNetwork
         if (targetId is null)
             return false;
 
-        return RecalculateSingleSubnetwork(location, targetId.Value, requireEnergy, waterDemandPerTile);
+        return RecalculateSingleSubnetwork(location, targetId.Value, config);
     }
 
-    public bool RecalculateSubnetworkById(GameLocation location, Guid subnetworkId, bool requireEnergy, float waterDemandPerTile)
+    /// <summary>Recalcula una subred concreta a partir de su identificador.</summary>
+    public bool RecalculateSubnetworkById(GameLocation location, Guid subnetworkId, ModConfig config)
     {
         ArgumentNullException.ThrowIfNull(location);
+        ArgumentNullException.ThrowIfNull(config);
 
         RebuildSubnetworks();
-        return RecalculateSingleSubnetwork(location, subnetworkId, requireEnergy, waterDemandPerTile);
+        return RecalculateSingleSubnetwork(location, subnetworkId, config);
     }
 
+    /// <summary>Devuelve las casillas de tubería que pertenecen a la subred especificada.</summary>
     public IReadOnlyCollection<Vector2> GetSubnetworkPipeTiles(Guid subnetworkId)
     {
         if (_subnetworks.TryGetValue(subnetworkId, out SubnetworkInfo? network))
@@ -191,9 +210,11 @@ internal sealed class HydraulicNetwork
         return Array.Empty<Vector2>();
     }
 
-    public bool RecalculateSubnetworkAtPumpTile(GameLocation location, Vector2 tile, bool requireEnergy, float waterDemandPerTile)
+    /// <summary>Recalcula la subred asociada a la casilla de bomba indicada.</summary>
+    public bool RecalculateSubnetworkAtPumpTile(GameLocation location, Vector2 tile, ModConfig config)
     {
         ArgumentNullException.ThrowIfNull(location);
+        ArgumentNullException.ThrowIfNull(config);
 
         RebuildSubnetworks();
 
@@ -201,9 +222,10 @@ internal sealed class HydraulicNetwork
         if (targetId is null)
             return false;
 
-        return RecalculateSingleSubnetwork(location, targetId.Value, requireEnergy, waterDemandPerTile);
+        return RecalculateSingleSubnetwork(location, targetId.Value, config);
     }
 
+    /// <summary>Reconstruye el mapa de subredes a partir del estado actual de tuberías y bombas.</summary>
     private void RebuildSubnetworks(IReadOnlyDictionary<Guid, HashSet<Vector2>>? preferredById = null)
     {
         Dictionary<Guid, HashSet<Vector2>> previousById = preferredById is null
@@ -280,19 +302,23 @@ internal sealed class HydraulicNetwork
         }
     }
 
-    private Dictionary<Vector2, WaterPumpMachine> GetActivePumpsByTile(GameLocation location, bool requireEnergy)
+    /// <summary>Obtiene las bombas activas por casilla según la ubicación y la configuración.</summary>
+    private Dictionary<Vector2, WaterPumpMachine> GetActivePumpsByTile(GameLocation location, ModConfig config)
     {
+        ArgumentNullException.ThrowIfNull(config);
+
         Dictionary<Vector2, WaterPumpMachine> activePumpsByTile = new();
 
         foreach (WaterPumpMachine pump in _pumpByTile.Values)
         {
-            if (pump.RefreshPowerState(location, requireEnergy))
+            if (pump.RefreshPowerState(location, config.RequireEnergyForPumps))
                 activePumpsByTile[pump.Tile] = pump;
         }
 
         return activePumpsByTile;
     }
 
+    /// <summary>Reinicia las métricas de caudal y consumo de todas las subredes.</summary>
     private void ResetSubnetworkMetrics()
     {
         foreach (SubnetworkInfo network in _subnetworks.Values)
@@ -302,8 +328,12 @@ internal sealed class HydraulicNetwork
         }
     }
 
-    private bool RecalculateSingleSubnetwork(GameLocation location, Guid subnetworkId, bool requireEnergy, float waterDemandPerTile)
+    /// <summary>Recalcula el agua de una subred concreta y actualiza su estado.</summary>
+    private bool RecalculateSingleSubnetwork(GameLocation location, Guid subnetworkId, ModConfig config)
     {
+        ArgumentNullException.ThrowIfNull(config);
+
+        float waterDemandPerTile = config.WaterCostPerTile;
         if (waterDemandPerTile <= 0f)
             waterDemandPerTile = 0.25f;
 
@@ -319,17 +349,19 @@ internal sealed class HydraulicNetwork
         targetNetwork.MaxFlow = 0f;
         targetNetwork.ConsumptionFlow = 0f;
 
-        Dictionary<Vector2, WaterPumpMachine> activePumpsByTile = GetActivePumpsByTile(location, requireEnergy);
+        Dictionary<Vector2, WaterPumpMachine> activePumpsByTile = GetActivePumpsByTile(location, config);
         if (activePumpsByTile.Count == 0)
             return true;
 
-        RecalculateSubnetworkWater(targetNetwork, location, waterDemandPerTile, activePumpsByTile);
+        RecalculateSubnetworkWater(targetNetwork, location, config, waterDemandPerTile, activePumpsByTile);
         return true;
     }
 
+    /// <summary>Propaga el agua por una subred y calcula su consumo efectivo.</summary>
     private void RecalculateSubnetworkWater(
         SubnetworkInfo network,
         GameLocation location,
+        ModConfig config,
         float waterDemandPerTile,
         IReadOnlyDictionary<Vector2, WaterPumpMachine> activePumpsByTile)
     {
@@ -343,7 +375,7 @@ internal sealed class HydraulicNetwork
         if (activePumpTiles.Count == 0)
             return;
 
-        float componentCapacity = activePumpTiles.Sum(tile => activePumpsByTile[tile].WaterOutput);
+        float componentCapacity = activePumpTiles.Sum(tile => activePumpsByTile[tile].GetWaterOutput(config));
         network.MaxFlow = componentCapacity;
 
         int maxConsumableTilledTiles = (int)Math.Floor(componentCapacity / waterDemandPerTile);
@@ -396,6 +428,7 @@ internal sealed class HydraulicNetwork
         network.ConsumptionFlow = consumedTilledTiles * waterDemandPerTile;
     }
 
+    /// <summary>Resuelve el identificador de subred reutilizando el de mayor solapamiento previo.</summary>
     private static Guid ResolveSubnetworkId(HashSet<Vector2> componentTiles, IReadOnlyDictionary<Guid, HashSet<Vector2>> previousById)
     {
         Guid matchedId = Guid.Empty;
@@ -417,6 +450,7 @@ internal sealed class HydraulicNetwork
         return Guid.NewGuid();
     }
 
+    /// <summary>Serializa la red hidráulica al formato de guardado del mod.</summary>
     public HydraulicSaveData ToSaveData()
     {
         RebuildSubnetworks();
@@ -436,6 +470,7 @@ internal sealed class HydraulicNetwork
         };
     }
 
+    /// <summary>Reconstruye una red hidráulica a partir de datos de guardado.</summary>
     public static HydraulicNetwork FromSaveData(HydraulicSaveData? data)
     {
         HydraulicNetwork network = new();

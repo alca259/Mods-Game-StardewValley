@@ -7,12 +7,14 @@ internal static class HydraulicWorldRules
 {
     private const int WaterSearchDistance = 2;
 
+    /// <summary>Comprueba si la ubicación es la granja principal exterior.</summary>
     public static bool IsMainlandFarm(GameLocation location)
     {
         ArgumentNullException.ThrowIfNull(location);
         return location.IsFarm && location.IsOutdoors;
     }
 
+    /// <summary>Enumera las casillas adyacentes cardinales de una casilla.</summary>
     public static IEnumerable<Vector2> EnumerateCardinalNeighbors(Vector2 tile)
     {
         yield return new Vector2(tile.X, tile.Y - 1);
@@ -21,6 +23,7 @@ internal static class HydraulicWorldRules
         yield return new Vector2(tile.X - 1, tile.Y);
     }
 
+    /// <summary>Enumera el centro y sus casillas adyacentes cardinales.</summary>
     public static IEnumerable<Vector2> EnumerateCardinalPlusCenter(Vector2 center)
     {
         yield return center;
@@ -28,6 +31,7 @@ internal static class HydraulicWorldRules
             yield return adjacent;
     }
 
+    /// <summary>Comprueba si se puede colocar una tubería en una casilla.</summary>
     public static bool CanPlacePipeOnTile(GameLocation location, Vector2 tile)
     {
         ArgumentNullException.ThrowIfNull(location);
@@ -47,6 +51,7 @@ internal static class HydraulicWorldRules
         return true;
     }
 
+    /// <summary>Comprueba si se puede colocar una bomba en una casilla.</summary>
     public static bool CanPlacePumpOnTile(GameLocation location, Vector2 tile)
     {
         ArgumentNullException.ThrowIfNull(location);
@@ -67,6 +72,7 @@ internal static class HydraulicWorldRules
         return false;
     }
 
+    /// <summary>Enumera casillas cardinales dentro de una distancia máxima.</summary>
     private static IEnumerable<Vector2> EnumerateCardinalWithinDistance(Vector2 center, int maxDistance)
     {
         for (int distance = 1; distance <= maxDistance; distance++)

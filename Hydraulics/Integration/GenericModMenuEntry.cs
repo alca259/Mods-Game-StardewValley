@@ -4,11 +4,13 @@ namespace Hydraulics;
 
 public partial class ModEntry
 {
+    /// <summary>Obtiene una traducción del mod a partir de su clave.</summary>
     private string T(string key)
     {
         return Helper.Translation.Get(key);
     }
 
+    /// <summary>Configura las opciones del mod en Generic Mod Config Menu.</summary>
     private void SetupGenericModMenu()
     {
         // get Generic Mod Config Menu's API (if it's installed)
@@ -95,6 +97,46 @@ public partial class ModEntry
             min: 1,
             max: 1000,
             interval: 1
+        );
+
+        configMenu.AddNumberOption(
+            mod: ModManifest,
+            name: () => T("pump.output.bronze"),
+            getValue: () => _config.BronzePumpWaterOutput,
+            setValue: value => _config.BronzePumpWaterOutput = value,
+            min: 1f,
+            max: 1000f,
+            interval: 1f
+        );
+
+        configMenu.AddNumberOption(
+            mod: ModManifest,
+            name: () => T("pump.output.steel"),
+            getValue: () => _config.SteelPumpWaterOutput,
+            setValue: value => _config.SteelPumpWaterOutput = value,
+            min: 1f,
+            max: 1000f,
+            interval: 1f
+        );
+
+        configMenu.AddNumberOption(
+            mod: ModManifest,
+            name: () => T("pump.output.gold"),
+            getValue: () => _config.GoldPumpWaterOutput,
+            setValue: value => _config.GoldPumpWaterOutput = value,
+            min: 1f,
+            max: 1000f,
+            interval: 1f
+        );
+
+        configMenu.AddNumberOption(
+            mod: ModManifest,
+            name: () => T("pump.output.iridium"),
+            getValue: () => _config.IridiumPumpWaterOutput,
+            setValue: value => _config.IridiumPumpWaterOutput = value,
+            min: 1f,
+            max: 1000f,
+            interval: 1f
         );
 
         configMenu.AddBoolOption(

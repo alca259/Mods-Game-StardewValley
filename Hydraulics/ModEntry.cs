@@ -61,6 +61,7 @@ public partial class ModEntry : Mod
     #endregion
 
     #region Event Handlers
+    /// <summary>Recalcula el riego al comenzar el día si procede.</summary>
     private void OnDayStarted(object? sender, DayStartedEventArgs e)
     {
         if (!_config.EnableMod)
@@ -75,6 +76,7 @@ public partial class ModEntry : Mod
         RecalculateAndApplyIrrigation();
     }
 
+    /// <summary>Gestiona teclas y clics para edición y sincronización de riego.</summary>
     private void OnButtonsChanged(object? sender, ButtonsChangedEventArgs e)
     {
         if (!_config.EnableMod || !Context.IsWorldReady)
@@ -155,6 +157,7 @@ public partial class ModEntry : Mod
         }
     }
 
+    /// <summary>Procesa mensajes de sincronización de riego en multijugador.</summary>
     private void OnModMessageReceived(object? sender, ModMessageReceivedEventArgs e)
     {
         if (!_config.EnableMod || !Context.IsWorldReady)
@@ -184,6 +187,7 @@ public partial class ModEntry : Mod
         }
     }
 
+    /// <summary>Gestiona el arrastre para colocar o quitar tuberías.</summary>
     private void OnCursorMoved(object? sender, CursorMovedEventArgs e)
     {
         if (!_config.EnableMod || !_pipeEditMode || !_isDraggingPipe)
@@ -218,11 +222,13 @@ public partial class ModEntry : Mod
             TryAddPipeAtCursor();
     }
 
+    /// <summary>Inicializa integraciones del mod tras cargar el juego.</summary>
     private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
     {
         SetupGenericModMenu();
     }
 
+    /// <summary>Ejecuta recálculos pendientes de riego por ticks.</summary>
     private void OnUpdateTicked(object? sender, UpdateTickedEventArgs e)
     {
         if (!_config.EnableMod || !Context.IsWorldReady)
@@ -237,6 +243,7 @@ public partial class ModEntry : Mod
             RecalculateAndApplyIrrigation();
     }
 
+    /// <summary>Carga la red guardada y sincroniza bombas del mundo.</summary>
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
     {
         _network = HydraulicNetwork.FromSaveData(Helper.Data.ReadSaveData<HydraulicSaveData>(SaveDataKey));
@@ -244,6 +251,7 @@ public partial class ModEntry : Mod
         RecalculateAndApplyIrrigation();
     }
 
+    /// <summary>Reacciona a cambios de objetos para mantener la red actualizada.</summary>
     private void OnObjectListChanged(object? sender, ObjectListChangedEventArgs e)
     {
         if (!_config.EnableMod || !Context.IsWorldReady)
@@ -298,11 +306,13 @@ public partial class ModEntry : Mod
         }
     }
 
+    /// <summary>Guarda el estado actual de la red hidráulica.</summary>
     private void OnSaving(object? sender, SavingEventArgs e)
     {
         Helper.Data.WriteSaveData(SaveDataKey, _network.ToSaveData());
     }
 
+    /// <summary>Reinicia estado temporal del mod al volver al título.</summary>
     private void OnReturnedToTitle(object? sender, ReturnedToTitleEventArgs e)
     {
         _network = new HydraulicNetwork();
@@ -313,6 +323,7 @@ public partial class ModEntry : Mod
         _pendingIrrigationSyncTicks = 0;
     }
 
+    /// <summary>Dibuja overlays del sistema hidráulico durante el render del mundo.</summary>
     private void OnRenderedWorld(object? sender, RenderedWorldEventArgs e)
     {
         if (!_config.EnableMod || !Context.IsWorldReady)
@@ -328,16 +339,19 @@ public partial class ModEntry : Mod
         }
     }
 
+    /// <summary>Comprueba si se puede editar en la ubicación actual.</summary>
     private bool CanEditAtCurrentLocation()
     {
         return HydraulicWorldRules.IsMainlandFarm(Game1.currentLocation);
     }
 
+    /// <summary>Indica si el jugador actual puede mutar la red.</summary>
     private static bool CanMutateNetwork()
     {
         return Context.IsMainPlayer;
     }
 
+    /// <summary>Comprueba si el jugador está en estado válido para editar tuberías.</summary>
     private static bool CanPlayerEditPipesNow()
     {
         if (!Context.IsPlayerFree)
@@ -352,6 +366,7 @@ public partial class ModEntry : Mod
         return true;
     }
 
+    /// <summary>Intenta colocar una tubería en la casilla bajo el cursor.</summary>
     private void TryAddPipeAtCursor()
     {
         if (!CanMutateNetwork())
@@ -380,6 +395,7 @@ public partial class ModEntry : Mod
         RequestIrrigationSync();
     }
 
+    /// <summary>Intenta quitar una tubería en la casilla bajo el cursor.</summary>
     private void TryRemovePipeAtCursor()
     {
         if (!CanMutateNetwork())
@@ -398,6 +414,7 @@ public partial class ModEntry : Mod
         }
     }
 
+    /// <summary>Solicita recálculo al hacer clic derecho sobre una bomba.</summary>
     private void TryRecalculateByPumpClick()
     {
         if (!CanMutateNetwork())
@@ -410,6 +427,7 @@ public partial class ModEntry : Mod
         RequestIrrigationSyncForPump(tile);
     }
 
+    /// <summary>Programa una sincronización de riego tras un número de ticks.</summary>
     private void RequestIrrigationSync(int ticks = 4)
     {
         if (ticks < 1)
@@ -419,6 +437,7 @@ public partial class ModEntry : Mod
             _pendingIrrigationSyncTicks = ticks;
     }
 
+    /// <summary>Solicita recálculo y sincronización para la subred de una tubería.</summary>
     private void RequestIrrigationSyncForPipe(Vector2 tile, int ticks = 60)
     {
         if (!CanMutateNetwork())
@@ -427,7 +446,7 @@ public partial class ModEntry : Mod
             return;
         }
 
-        if (!_network.RecalculateSubnetworkAtTile(Game1.getFarm(), tile, _config.RequireEnergyForPumps, _config.WaterCostPerTile))
+        if (!_network.RecalculateSubnetworkAtTile(Game1.getFarm(), tile, _config))
             return;
 
         Guid? subnetworkId = _network.TryGetSubnetworkIdByPipe(tile);
@@ -438,6 +457,7 @@ public partial class ModEntry : Mod
         RequestIrrigationSync(ticks);
     }
 
+    /// <summary>Solicita recálculo y sincronización para la subred de una bomba.</summary>
     private void RequestIrrigationSyncForPump(Vector2 tile, int ticks = 4)
     {
         if (!CanMutateNetwork())
@@ -446,7 +466,7 @@ public partial class ModEntry : Mod
             return;
         }
 
-        if (!_network.RecalculateSubnetworkAtPumpTile(Game1.getFarm(), tile, _config.RequireEnergyForPumps, _config.WaterCostPerTile))
+        if (!_network.RecalculateSubnetworkAtPumpTile(Game1.getFarm(), tile, _config))
             return;
 
         Guid? subnetworkId = _network.TryGetSubnetworkIdByPump(tile);
@@ -457,6 +477,7 @@ public partial class ModEntry : Mod
         RequestIrrigationSync(ticks);
     }
 
+    /// <summary>Envía una petición de riego al anfitrión en multijugador.</summary>
     private void SendIrrigationRequest(IrrigationRequestKind kind, Vector2 tile)
     {
         if (!Context.IsMultiplayer || Context.IsMainPlayer)
@@ -469,6 +490,7 @@ public partial class ModEntry : Mod
             new[] { Game1.MasterPlayer.UniqueMultiplayerID });
     }
 
+    /// <summary>Recalcula y aplica riego para subredes afectadas por edición de tuberías.</summary>
     private void RequestIrrigationSyncForPipeEdit(Vector2 tile, Guid? previousSubnetworkId, int ticks = 4)
     {
         if (!CanMutateNetwork())
@@ -476,10 +498,10 @@ public partial class ModEntry : Mod
 
         Guid? currentSubnetworkId = _network.TryGetSubnetworkIdByPipe(tile);
         if (previousSubnetworkId is Guid previousId)
-            _network.RecalculateSubnetworkById(Game1.getFarm(), previousId, _config.RequireEnergyForPumps, _config.WaterCostPerTile);
+            _network.RecalculateSubnetworkById(Game1.getFarm(), previousId, _config);
 
         if (currentSubnetworkId is Guid currentId)
-            _network.RecalculateSubnetworkById(Game1.getFarm(), currentId, _config.RequireEnergyForPumps, _config.WaterCostPerTile);
+            _network.RecalculateSubnetworkById(Game1.getFarm(), currentId, _config);
 
         if (previousSubnetworkId is Guid previousToApply)
             RecalculateAndApplySubnetworkIrrigation(previousToApply);
@@ -490,6 +512,7 @@ public partial class ModEntry : Mod
         RequestIrrigationSync(ticks);
     }
 
+    /// <summary>Dibuja todas las tuberías de la red en pantalla.</summary>
     private void DrawHydraulics(SpriteBatch spriteBatch)
     {
         foreach (HydraulicPipe pipe in _network.Pipes.Values)
@@ -498,6 +521,7 @@ public partial class ModEntry : Mod
         }
     }
 
+    /// <summary>Recalcula y aplica el riego de toda la red.</summary>
     private void RecalculateAndApplyIrrigation()
     {
         Farm farm = Game1.getFarm();
@@ -506,7 +530,7 @@ public partial class ModEntry : Mod
             .Select(pipe => pipe.Tile)
             .ToHashSet();
 
-        _network.RecalculateWater(farm, _config.RequireEnergyForPumps, _config.WaterCostPerTile);
+        _network.RecalculateWater(farm, _config);
 
         if (!CanMutateNetwork())
             return;
@@ -537,6 +561,7 @@ public partial class ModEntry : Mod
         }
     }
 
+    /// <summary>Recalcula y aplica el riego de una subred concreta.</summary>
     private void RecalculateAndApplySubnetworkIrrigation(Guid subnetworkId)
     {
         Farm farm = Game1.getFarm();
@@ -549,7 +574,7 @@ public partial class ModEntry : Mod
             .Select(pipe => pipe.Tile)
             .ToHashSet();
 
-        if (!_network.RecalculateSubnetworkById(farm, subnetworkId, _config.RequireEnergyForPumps, _config.WaterCostPerTile))
+        if (!_network.RecalculateSubnetworkById(farm, subnetworkId, _config))
             return;
 
         if (!CanMutateNetwork())
@@ -581,6 +606,7 @@ public partial class ModEntry : Mod
         }
     }
 
+    /// <summary>Sincroniza las bombas de la red con los objetos del mapa.</summary>
     private void SyncPumpsFromWorld()
     {
         Farm farm = Game1.getFarm();
@@ -595,6 +621,7 @@ public partial class ModEntry : Mod
         }
     }
 
+    /// <summary>Intenta aplicar el coste de construcción de una tubería.</summary>
     private bool TryApplyPipeBuildCost()
     {
         if (_config.PipeBuildGoldCost > 0 && Game1.player.Money < _config.PipeBuildGoldCost)
@@ -619,6 +646,7 @@ public partial class ModEntry : Mod
         return true;
     }
 
+    /// <summary>Comprueba si un objeto es un panel solar válido.</summary>
     private static bool IsSolarPanel(StardewValley.Object obj)
     {
         ArgumentNullException.ThrowIfNull(obj);
@@ -627,6 +655,7 @@ public partial class ModEntry : Mod
             && string.Equals(obj.QualifiedItemId, HydraulicConstants.SolarPanelId, StringComparison.OrdinalIgnoreCase);
     }
 
+    /// <summary>Añade bombas adyacentes de una casilla al conjunto de refresco.</summary>
     private void AddAdjacentPumpTiles(Vector2 tile, ISet<Vector2> pumpTiles)
     {
         ArgumentNullException.ThrowIfNull(pumpTiles);
@@ -638,6 +667,7 @@ public partial class ModEntry : Mod
         }
     }
 
+    /// <summary>Aplica el reembolso configurado al destruir una tubería.</summary>
     private void ApplyPipeDestroyRefund()
     {
         if (_config.PipeDestroyGoldRefund > 0)
@@ -647,6 +677,7 @@ public partial class ModEntry : Mod
             Game1.player.addItemToInventoryBool(ItemRegistry.Create(HydraulicConstants.CopperOreId, _config.PipeDestroyCopperOreRefund));
     }
 
+    /// <summary>Retira una cantidad de un objeto del inventario del jugador.</summary>
     private static void RemoveItemFromInventory(string qualifiedItemId, int amount)
     {
         if (amount <= 0)
@@ -670,6 +701,7 @@ public partial class ModEntry : Mod
         }
     }
 
+    /// <summary>Intenta obtener el nivel de bomba a partir de un objeto colocable.</summary>
     private static bool TryGetPumpTier(StardewValley.Object obj, out WaterPumpTier tier)
     {
         ArgumentNullException.ThrowIfNull(obj);
@@ -721,6 +753,7 @@ public partial class ModEntry : Mod
 
     private static Color GetOverlayPumpProducingColor() => new(70, 200, 90, 220);
 
+    /// <summary>Dibuja un indicador de estado sobre cada bomba.</summary>
     private void DrawPumpStatusOverlay(SpriteBatch spriteBatch)
     {
         if (!HydraulicWorldRules.IsMainlandFarm(Game1.currentLocation))
@@ -763,6 +796,7 @@ public partial class ModEntry : Mod
         }
     }
 
+    /// <summary>Dibuja información de caudal por subred sobre el mundo.</summary>
     private void DrawSubnetworkFlowInfo(SpriteBatch spriteBatch)
     {
         List<Rectangle> occupiedBounds = new();
@@ -820,6 +854,7 @@ public partial class ModEntry : Mod
         }
     }
 
+    /// <summary>Dibuja un marco de colocación para tuberías en la casilla apuntada.</summary>
     private void DrawPipePlacementOverlay(SpriteBatch spriteBatch)
     {
         if (!_pipeEditMode || !CanEditAtCurrentLocation())

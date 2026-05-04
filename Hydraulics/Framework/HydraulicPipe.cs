@@ -15,11 +15,13 @@ internal sealed class HydraulicPipe
 
     public byte ConnectionMask { get; private set; }
 
+    /// <summary>Crea una tubería hidráulica en la casilla indicada.</summary>
     public HydraulicPipe(Vector2 tile)
     {
         Tile = tile;
     }
 
+    /// <summary>Actualiza la máscara de conexiones según las tuberías adyacentes.</summary>
     public void RefreshConnections(IReadOnlyDictionary<Vector2, HydraulicPipe> allPipes)
     {
         ArgumentNullException.ThrowIfNull(allPipes);
@@ -33,6 +35,7 @@ internal sealed class HydraulicPipe
         ConnectionMask = mask;
     }
 
+    /// <summary>Dibuja la tubería y sus conexiones visibles en pantalla.</summary>
     public void Draw(SpriteBatch spriteBatch, IReadOnlyList<WaterPumpMachine> pumps, Color unpoweredColor, Color poweredColor)
     {
         ArgumentNullException.ThrowIfNull(spriteBatch);
@@ -67,6 +70,7 @@ internal sealed class HydraulicPipe
             DrawSegment(spriteBatch, screen, 0, centerStart, centerStart, CorePixels, zoom, color, layerDepth);
     }
 
+    /// <summary>Dibuja un segmento rectangular de la tubería.</summary>
     private static void DrawSegment(
         SpriteBatch spriteBatch,
         Vector2 screen,

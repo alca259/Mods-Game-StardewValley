@@ -33,6 +33,18 @@ internal sealed class ModConfig
     /// <summary>Establece el coste de agua por cada casilla regada por cada tubería.</summary>
     public float WaterCostPerTile { get; set; } = 0.25f;
 
+    /// <summary>Establece el caudal del nivel bronce de la bomba.</summary>
+    public float BronzePumpWaterOutput { get; set; } = 10f;
+
+    /// <summary>Establece el caudal del nivel acero de la bomba.</summary>
+    public float SteelPumpWaterOutput { get; set; } = 25f;
+
+    /// <summary>Establece el caudal del nivel oro de la bomba.</summary>
+    public float GoldPumpWaterOutput { get; set; } = 80f;
+
+    /// <summary>Establece el caudal del nivel iridio de la bomba.</summary>
+    public float IridiumPumpWaterOutput { get; set; } = 200f;
+
     /// <summary>Indica si se reproduce una animación de aspersor al regar las casillas.</summary>
     public bool PlaySprinklerAnimation { get; set; } = true;
 
@@ -63,5 +75,25 @@ internal sealed class ModConfig
             WaterCostPerTile = 0.25f;
         else if (WaterCostPerTile > 10.00f || float.IsPositiveInfinity(WaterCostPerTile))
             WaterCostPerTile = 10.00f;
+
+        if (BronzePumpWaterOutput <= 0f || float.IsNaN(BronzePumpWaterOutput) || float.IsInfinity(BronzePumpWaterOutput))
+            BronzePumpWaterOutput = 10f;
+        else if (BronzePumpWaterOutput > 1000f)
+            BronzePumpWaterOutput = 1000f;
+
+        if (SteelPumpWaterOutput <= 0f || float.IsNaN(SteelPumpWaterOutput) || float.IsInfinity(SteelPumpWaterOutput))
+            SteelPumpWaterOutput = 25f;
+        else if (SteelPumpWaterOutput > 1000f)
+            SteelPumpWaterOutput = 1000f;
+
+        if (GoldPumpWaterOutput <= 0f || float.IsNaN(GoldPumpWaterOutput) || float.IsInfinity(GoldPumpWaterOutput))
+            GoldPumpWaterOutput = 80f;
+        else if (GoldPumpWaterOutput > 1000f)
+            GoldPumpWaterOutput = 1000f;
+
+        if (IridiumPumpWaterOutput <= 0f || float.IsNaN(IridiumPumpWaterOutput) || float.IsInfinity(IridiumPumpWaterOutput))
+            IridiumPumpWaterOutput = 200f;
+        else if (IridiumPumpWaterOutput > 1000f)
+            IridiumPumpWaterOutput = 1000f;
     }
 }

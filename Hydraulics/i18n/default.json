@@ -7,6 +7,10 @@
   "pipe.refund.gold": "Destroy pipe gold refund",
   "pipe.refund.copper": "Destroy pipe copper ore refund",
   "water.cost.perTile": "Water cost per tile x100",
+  "pump.output.bronze": "Bronze pump water output",
+  "pump.output.steel": "Steel pump water output",
+  "pump.output.gold": "Gold pump water output",
+  "pump.output.iridium": "Iridium pump water output",
   "water.sprinklerAnimation": "Play sprinkler animation",
   "log.configReloaded": "Config reloaded",
   "log.pipeEditMode": "Pipe edit mode: {{state}}"

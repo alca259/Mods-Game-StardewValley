@@ -71,7 +71,7 @@
       "Action": "EditData",
       "Target": "Data/CraftingRecipes",
       "Entries": {
-        "Bronze Water Pump": "388 50 787 1 334 5/Home/Alca259.Hydraulics_BronzeWaterPump/true/Farming 2",
+        "Bronze Water Pump": "388 50 334 5/Home/Alca259.Hydraulics_BronzeWaterPump/true/Farming 2",
         "Steel Water Pump": "388 50 787 1 335 5/Home/Alca259.Hydraulics_SteelWaterPump/true/Farming 4",
         "Gold Water Pump": "388 50 787 1 336 5/Home/Alca259.Hydraulics_GoldWaterPump/true/Farming 6",
         "Iridium Water Pump": "388 50 787 1 337 5/Home/Alca259.Hydraulics_IridiumWaterPump/true/Farming 8"

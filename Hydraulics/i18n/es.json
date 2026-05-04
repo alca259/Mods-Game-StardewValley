@@ -7,6 +7,10 @@
   "pipe.refund.gold": "Reembolso de oro al destruir tubería",
   "pipe.refund.copper": "Reembolso de mineral de cobre al destruir tubería",
   "water.cost.perTile": "Coste de agua por casilla x100",
+  "pump.output.bronze": "Caudal de la bomba de bronce",
+  "pump.output.steel": "Caudal de la bomba de acero",
+  "pump.output.gold": "Caudal de la bomba de oro",
+  "pump.output.iridium": "Caudal de la bomba de iridio",
   "water.sprinklerAnimation": "Reproducir animación de aspersor",
   "log.configReloaded": "Configuración recargada",
   "log.pipeEditMode": "Modo de edición de tuberías: {{state}}"
