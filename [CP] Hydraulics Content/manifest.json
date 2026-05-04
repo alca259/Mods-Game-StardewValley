@@ -1,13 +1,13 @@
 {
   "Name": "Hydraulics Content",
   "Author": "Alca259",
-  "Version": "1.0.0",
+  "Version": "3.1.2",
   "Description": "Content Pack for Hydraulics water pump BigCraftable and recipe.",
   "UniqueID": "Alca259.Hydraulics.Content",
   "MinimumApiVersion": "4.5.2",
   "ContentPackFor": {
     "UniqueID": "Pathoschild.ContentPatcher",
-    "MinimumVersion": "2.5.0"
+    "MinimumVersion": "2.5.1"
   },
   "Dependencies": [
     {
