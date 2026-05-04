@@ -2,7 +2,7 @@
   "pump.bronze.displayName": "Bomba de agua de bronce",
   "pump.bronze.description": "Produce 10 de agua.",
   "pump.steel.displayName": "Bomba de agua de acero",
-  "pump.steel.description": "Produce 25 de agua. Requiere 1 panel solar adyacente.",
+  "pump.steel.description": "Produce 25 de agua.",
   "pump.gold.displayName": "Bomba de agua de oro",
   "pump.gold.description": "Produce 80 de agua. Requiere 1 panel solar adyacente.",
   "pump.iridium.displayName": "Bomba de agua de iridio",

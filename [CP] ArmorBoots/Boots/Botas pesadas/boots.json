@@ -1,8 +1,8 @@
 {
   "Name": "Botas pesadas",
   "Description": "Unas botas hechas de acero.",
-  "Price": 1000,
-  "PurchasePrice": 10000,
+  "Price": 10000,
+  "PurchasePrice": 100000,
   "CanPurchase": true,
   "PurchaseFrom": "Marlon",
   "Defense": 20,
