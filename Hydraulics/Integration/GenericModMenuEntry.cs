@@ -55,8 +55,8 @@ public partial class ModEntry
             getValue: () => _config.PipeBuildGoldCost,
             setValue: value => _config.PipeBuildGoldCost = value,
             min: 0,
-            max: 1000,
-            interval: 10
+            max: 100,
+            interval: 5
         );
 
         configMenu.AddNumberOption(
@@ -65,7 +65,7 @@ public partial class ModEntry
             getValue: () => _config.PipeBuildCopperOreCost,
             setValue: value => _config.PipeBuildCopperOreCost = value,
             min: 0,
-            max: 50,
+            max: 10,
             interval: 1
         );
 
@@ -75,8 +75,8 @@ public partial class ModEntry
             getValue: () => _config.PipeDestroyGoldRefund,
             setValue: value => _config.PipeDestroyGoldRefund = value,
             min: 0,
-            max: 1000,
-            interval: 10
+            max: 100,
+            interval: 5
         );
 
         configMenu.AddNumberOption(
@@ -85,17 +85,17 @@ public partial class ModEntry
             getValue: () => _config.PipeDestroyCopperOreRefund,
             setValue: value => _config.PipeDestroyCopperOreRefund = value,
             min: 0,
-            max: 50,
+            max: 10,
             interval: 1
         );
 
         configMenu.AddNumberOption(
             mod: ModManifest,
             name: () => T("water.cost.perTile"),
-            getValue: () => (int)(_config.WaterCostPerTile * 100f),
+            getValue: () => _config.WaterCostPerTile * 100f,
             setValue: value => _config.WaterCostPerTile = value / 100f,
             min: 1,
-            max: 1000,
+            max: 100,
             interval: 1
         );
 
@@ -105,7 +105,7 @@ public partial class ModEntry
             getValue: () => _config.BronzePumpWaterOutput,
             setValue: value => _config.BronzePumpWaterOutput = value,
             min: 1f,
-            max: 1000f,
+            max: 20f,
             interval: 1f
         );
 
@@ -115,7 +115,7 @@ public partial class ModEntry
             getValue: () => _config.SteelPumpWaterOutput,
             setValue: value => _config.SteelPumpWaterOutput = value,
             min: 1f,
-            max: 1000f,
+            max: 50f,
             interval: 1f
         );
 
@@ -125,7 +125,7 @@ public partial class ModEntry
             getValue: () => _config.GoldPumpWaterOutput,
             setValue: value => _config.GoldPumpWaterOutput = value,
             min: 1f,
-            max: 1000f,
+            max: 160f,
             interval: 1f
         );
 
@@ -135,7 +135,7 @@ public partial class ModEntry
             getValue: () => _config.IridiumPumpWaterOutput,
             setValue: value => _config.IridiumPumpWaterOutput = value,
             min: 1f,
-            max: 1000f,
+            max: 400f,
             interval: 1f
         );
 

@@ -48,52 +48,81 @@ internal sealed class ModConfig
     /// <summary>Indica si se reproduce una animación de aspersor al regar las casillas.</summary>
     public bool PlaySprinklerAnimation { get; set; } = true;
 
-    /// <summary>Ensure all arguments are valid.</summary>
+    /// <summary>Valida y normaliza todos los argumentos de configuración.</summary>
     public void EnsureArguments()
+    {
+        EnsurePipeCostAndRefundArguments();
+        EnsureRefundNotGreaterThanCost();
+        EnsureWaterCostArguments();
+        EnsurePumpOutputArguments();
+    }
+
+    /// <summary>Valida los límites de costes y reembolsos de tuberías.</summary>
+    private void EnsurePipeCostAndRefundArguments()
     {
         if (PipeBuildGoldCost < 0)
             PipeBuildGoldCost = 0;
-        else if (PipeBuildGoldCost > 1000)
-            PipeBuildGoldCost = 1000;
+        else if (PipeBuildGoldCost > 100)
+            PipeBuildGoldCost = 100;
 
         if (PipeBuildCopperOreCost < 0)
             PipeBuildCopperOreCost = 0;
-        else if (PipeBuildCopperOreCost > 50)
-            PipeBuildCopperOreCost = 50;
+        else if (PipeBuildCopperOreCost > 10)
+            PipeBuildCopperOreCost = 10;
 
         if (PipeDestroyGoldRefund < 0)
             PipeDestroyGoldRefund = 0;
-        else if (PipeDestroyGoldRefund > 1000)
-            PipeDestroyGoldRefund = 1000;
+        else if (PipeDestroyGoldRefund > 100)
+            PipeDestroyGoldRefund = 100;
 
         if (PipeDestroyCopperOreRefund < 0)
             PipeDestroyCopperOreRefund = 0;
-        else if (PipeDestroyCopperOreRefund > 50)
-            PipeDestroyCopperOreRefund = 50;
+        else if (PipeDestroyCopperOreRefund > 10)
+            PipeDestroyCopperOreRefund = 10;
+    }
 
+    /// <summary>Garantiza que ningún reembolso supere su coste de construcción.</summary>
+    private void EnsureRefundNotGreaterThanCost()
+    {
+        if (PipeDestroyGoldRefund > PipeBuildGoldCost)
+            PipeDestroyGoldRefund = PipeBuildGoldCost;
+
+        if (PipeDestroyCopperOreRefund > PipeBuildCopperOreCost)
+            PipeDestroyCopperOreRefund = PipeBuildCopperOreCost;
+    }
+
+    /// <summary>Valida los límites del coste de agua por casilla.</summary>
+    private void EnsureWaterCostArguments()
+    {
         if (WaterCostPerTile < 0.00f || float.IsNegative(WaterCostPerTile))
             WaterCostPerTile = 0.25f;
-        else if (WaterCostPerTile > 10.00f || float.IsPositiveInfinity(WaterCostPerTile))
-            WaterCostPerTile = 10.00f;
+        else if (WaterCostPerTile < 0.01f)
+            WaterCostPerTile = 0.01f;
+        else if (WaterCostPerTile > 1.00f || float.IsPositiveInfinity(WaterCostPerTile))
+            WaterCostPerTile = 1.00f;
+    }
 
+    /// <summary>Valida los límites de caudal para cada nivel de bomba.</summary>
+    private void EnsurePumpOutputArguments()
+    {
         if (BronzePumpWaterOutput <= 0f || float.IsNaN(BronzePumpWaterOutput) || float.IsInfinity(BronzePumpWaterOutput))
             BronzePumpWaterOutput = 10f;
-        else if (BronzePumpWaterOutput > 1000f)
-            BronzePumpWaterOutput = 1000f;
+        else if (BronzePumpWaterOutput > 20f)
+            BronzePumpWaterOutput = 20f;
 
         if (SteelPumpWaterOutput <= 0f || float.IsNaN(SteelPumpWaterOutput) || float.IsInfinity(SteelPumpWaterOutput))
             SteelPumpWaterOutput = 25f;
-        else if (SteelPumpWaterOutput > 1000f)
-            SteelPumpWaterOutput = 1000f;
+        else if (SteelPumpWaterOutput > 50f)
+            SteelPumpWaterOutput = 50f;
 
         if (GoldPumpWaterOutput <= 0f || float.IsNaN(GoldPumpWaterOutput) || float.IsInfinity(GoldPumpWaterOutput))
             GoldPumpWaterOutput = 80f;
-        else if (GoldPumpWaterOutput > 1000f)
-            GoldPumpWaterOutput = 1000f;
+        else if (GoldPumpWaterOutput > 160f)
+            GoldPumpWaterOutput = 160f;
 
         if (IridiumPumpWaterOutput <= 0f || float.IsNaN(IridiumPumpWaterOutput) || float.IsInfinity(IridiumPumpWaterOutput))
             IridiumPumpWaterOutput = 200f;
-        else if (IridiumPumpWaterOutput > 1000f)
-            IridiumPumpWaterOutput = 1000f;
+        else if (IridiumPumpWaterOutput > 400f)
+            IridiumPumpWaterOutput = 400f;
     }
 }
