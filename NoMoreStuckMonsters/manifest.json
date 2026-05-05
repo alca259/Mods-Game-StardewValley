@@ -7,20 +7,14 @@
    | 
    */
   "$schema": "https://smapi.io/schemas/manifest.json",
-  "UniqueID": "Alca259.Hydraulics",
-  "Name": "Hydraulics",
+  "UniqueID": "Alca259.NoMoreStuckMonsters",
+  "Name": "NoMoreStuckMonsters",
   "Author": "Alca259",
-  "Version": "3.1.2-Debug",
-  "Description": "Adds a fully functional subterranean irrigation system to the game.",
+  "Version": "3.1.2",
+  "Description": "Prevents monsters from getting stuck in the game.",
   "MinimumApiVersion": "4.5.2",
   "MinimumGameVersion": "1.6.15",
   "EntryDll": "NoMoreStuckMonsters.dll",
-  "Dependencies": [
-    {
-      "UniqueID": "Pathoschild.ContentPatcher",
-      "IsRequired": true
-    }
-  ],
   "UpdateKeys": [
     "GitHub:alca259/Mods-Game-StardewValley"
   ]

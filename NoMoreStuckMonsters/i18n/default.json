@@ -1,3 +1,19 @@
 {
-  "mod.enabled": "Mod enabled?"
+  "mod.enabled": "Mod enabled?",
+  "config.debug.section": "Debug",
+  "config.showDebugPath.name": "Show debug path",
+  "config.showDebugPath.tooltip": "Draw the A* path overlay for each processed monster.",
+  "log.configReloaded": "Configuration reloaded from disk.",
+  "config.reloadKey.name": "Reload config key",
+  "config.reloadKey.tooltip": "Press this key to reload config.json without restarting the game.",
+  "config.mines.section": "Mines (A*)",
+  "config.farm.section": "Farm (A*)",
+  "config.zone.enabled.name": "Enable zone",
+  "config.zone.enabled.tooltip": "Enable pathfinding in this zone.",
+  "config.zone.recalcInterval.name": "Recalc interval (frames)",
+  "config.zone.recalcInterval.tooltip": "Frames between A* recalculations.",
+  "config.zone.maxAStarNodes.name": "Max A* nodes",
+  "config.zone.maxAStarNodes.tooltip": "Maximum nodes explored by A* before aborting.",
+  "config.zone.stuckThreshold.name": "Stuck threshold (frames)",
+  "config.zone.stuckThreshold.tooltip": "Frames without moving before forcing recalculation."
 }

@@ -1,3 +1,19 @@
 {
-  "mod.enabled": "¿Mod habilitado?"
+  "mod.enabled": "¿Mod habilitado?",
+  "config.debug.section": "Depuración",
+  "config.showDebugPath.name": "Mostrar ruta de depuración",
+  "config.showDebugPath.tooltip": "Dibuja la superposición de ruta A* para cada monstruo procesado.",
+  "log.configReloaded": "Configuración recargada desde disco.",
+  "config.reloadKey.name": "Tecla para recargar config",
+  "config.reloadKey.tooltip": "Pulsa esta tecla para recargar config.json sin reiniciar el juego.",
+  "config.mines.section": "Minas (A*)",
+  "config.farm.section": "Granja (A*)",
+  "config.zone.enabled.name": "Habilitar zona",
+  "config.zone.enabled.tooltip": "Activa el pathfinding en esta zona.",
+  "config.zone.recalcInterval.name": "Intervalo de recálculo (frames)",
+  "config.zone.recalcInterval.tooltip": "Frames entre recálculos de A*.",
+  "config.zone.maxAStarNodes.name": "Máximo de nodos A*",
+  "config.zone.maxAStarNodes.tooltip": "Nodos máximos que A* puede explorar antes de abortar.",
+  "config.zone.stuckThreshold.name": "Umbral de atasco (frames)",
+  "config.zone.stuckThreshold.tooltip": "Frames sin avanzar antes de forzar recálculo."
 }
