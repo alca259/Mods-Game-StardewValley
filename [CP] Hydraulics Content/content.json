@@ -4,22 +4,22 @@
     {
       "Action": "Load",
       "Target": "Mods/Alca259.Hydraulics/BronzeWaterPump",
-      "FromFile": "assets/bronze_water_pump.png"
+      "FromFile": "assets/water_pump_copper_spritesheet.png"
     },
     {
       "Action": "Load",
       "Target": "Mods/Alca259.Hydraulics/SteelWaterPump",
-      "FromFile": "assets/steel_water_pump.png"
+      "FromFile": "assets/water_pump_iron_spritesheet.png"
     },
     {
       "Action": "Load",
       "Target": "Mods/Alca259.Hydraulics/GoldWaterPump",
-      "FromFile": "assets/gold_water_pump.png"
+      "FromFile": "assets/water_pump_gold_spritesheet.png"
     },
     {
       "Action": "Load",
       "Target": "Mods/Alca259.Hydraulics/IridiumWaterPump",
-      "FromFile": "assets/iridium_water_pump.png"
+      "FromFile": "assets/water_pump_iridium_spritesheet.png"
     },
     {
       "Action": "EditData",
