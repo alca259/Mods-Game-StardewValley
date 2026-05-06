@@ -19,6 +19,7 @@ public partial class ModEntry : Mod
     private const string SteelPumpBigCraftableId = "Alca259.Hydraulics_SteelWaterPump";
     private const string GoldPumpBigCraftableId = "Alca259.Hydraulics_GoldWaterPump";
     private const string IridiumPumpBigCraftableId = "Alca259.Hydraulics_IridiumWaterPump";
+    private const int AnimTicksPerFrame = 10;
 
     private ModConfig _config = null!;
     private HydraulicNetwork _network = new();
@@ -28,6 +29,8 @@ public partial class ModEntry : Mod
     private Point? _lastDraggedPipeTile;
     private bool _lastDragWasRemoving;
     private int _pendingIrrigationSyncTicks;
+    private int _animFrame;
+    private int _animTick;
 
     private enum IrrigationRequestKind
     {
@@ -234,13 +237,15 @@ public partial class ModEntry : Mod
         if (!_config.EnableMod || !Context.IsWorldReady)
             return;
 
-        if (_pendingIrrigationSyncTicks <= 0)
-            return;
+        if (_pendingIrrigationSyncTicks > 0)
+        {
+            _pendingIrrigationSyncTicks--;
 
-        _pendingIrrigationSyncTicks--;
+            if (_pendingIrrigationSyncTicks == 0)
+                RecalculateAndApplyIrrigation();
+        }
 
-        if (_pendingIrrigationSyncTicks == 0)
-            RecalculateAndApplyIrrigation();
+        TickPumpAnimations();
     }
 
     /// <summary>Carga la red guardada y sincroniza bombas del mundo.</summary>
@@ -321,6 +326,8 @@ public partial class ModEntry : Mod
         _isRemovingPipe = false;
         _lastDraggedPipeTile = null;
         _pendingIrrigationSyncTicks = 0;
+        _animFrame = 0;
+        _animTick = 0;
     }
 
     /// <summary>Dibuja overlays del sistema hidráulico durante el render del mundo.</summary>
@@ -328,8 +335,6 @@ public partial class ModEntry : Mod
     {
         if (!_config.EnableMod || !Context.IsWorldReady)
             return;
-
-        DrawPumpStatusOverlay(e.SpriteBatch);
 
         if (_pipeEditMode)
         {
@@ -646,6 +651,42 @@ public partial class ModEntry : Mod
         return true;
     }
 
+    /// <summary>Actualiza la animación visual de las bombas en la ubicación actual.</summary>
+    private void TickPumpAnimations()
+    {
+        _animTick++;
+        if (_animTick < AnimTicksPerFrame)
+            return;
+
+        _animTick = 0;
+        _animFrame = (_animFrame + 1) % 3;
+
+        if (!HydraulicWorldRules.IsMainlandFarm(Game1.currentLocation))
+            return;
+
+        Dictionary<Guid, HydraulicSubnetworkStatus> statusesById = _network.SubnetworkStatuses
+            .ToDictionary(status => status.Id);
+
+        foreach (WaterPumpMachine pump in _network.Pumps)
+        {
+            if (!Game1.currentLocation.Objects.TryGetValue(pump.Tile, out StardewValley.Object? obj))
+                continue;
+
+            if (!TryGetPumpTier(obj, out _))
+                continue;
+
+            bool isIrrigating = pump.PowerMode != PumpPowerMode.None
+                && _network.TryGetSubnetworkIdByPump(pump.Tile) is Guid subnetworkId
+                && statusesById.TryGetValue(subnetworkId, out HydraulicSubnetworkStatus status)
+                && status.MaxFlow > 0f
+                && status.ConsumptionFlow > 0f;
+
+            int targetFrame = isIrrigating ? _animFrame + 1 : 0;
+            if (obj.ParentSheetIndex != targetFrame)
+                obj.ParentSheetIndex = targetFrame;
+        }
+    }
+
     /// <summary>Comprueba si un objeto es un panel solar válido.</summary>
     private static bool IsSolarPanel(StardewValley.Object obj)
     {
@@ -746,55 +787,6 @@ public partial class ModEntry : Mod
     private static Color GetOverlayBlockedColor() => new(220, 40, 40, 220);
 
     private static Color GetOverlayNetworkTextColor() => Color.White;
-
-    private static Color GetOverlayPumpUnpoweredColor() => new(220, 50, 50, 220);
-
-    private static Color GetOverlayPumpPoweredIdleColor() => new(255, 220, 90, 220);
-
-    private static Color GetOverlayPumpProducingColor() => new(70, 200, 90, 220);
-
-    /// <summary>Dibuja un indicador de estado sobre cada bomba.</summary>
-    private void DrawPumpStatusOverlay(SpriteBatch spriteBatch)
-    {
-        if (!HydraulicWorldRules.IsMainlandFarm(Game1.currentLocation))
-            return;
-
-        Dictionary<Guid, HydraulicSubnetworkStatus> statusesById = _network.SubnetworkStatuses
-            .ToDictionary(status => status.Id);
-
-        int markerSize = Math.Max(4, Game1.pixelZoom + 1);
-
-        foreach (WaterPumpMachine pump in _network.Pumps)
-        {
-            bool isPowered = pump.PowerMode != PumpPowerMode.None;
-            bool isProducing = false;
-
-            if (isPowered
-                && _network.TryGetSubnetworkIdByPump(pump.Tile) is Guid subnetworkId
-                && statusesById.TryGetValue(subnetworkId, out HydraulicSubnetworkStatus status))
-            {
-                isProducing = status.MaxFlow > 0f && status.ConsumptionFlow > 0f;
-            }
-
-            Color indicatorColor = !isPowered
-                ? GetOverlayPumpUnpoweredColor()
-                : (isProducing ? GetOverlayPumpProducingColor() : GetOverlayPumpPoweredIdleColor());
-
-            Vector2 screen = Game1.GlobalToLocal(Game1.viewport, pump.Tile * Game1.tileSize);
-            int x = (int)screen.X + Game1.tileSize - markerSize - 8;
-            int y = (int)screen.Y - Game1.tileSize + 20;
-
-            spriteBatch.Draw(
-                Game1.staminaRect,
-                new Rectangle(x - 1, y - 1, markerSize + 2, markerSize + 2),
-                new Color(0, 0, 0, 150));
-
-            spriteBatch.Draw(
-                Game1.staminaRect,
-                new Rectangle(x, y, markerSize, markerSize),
-                indicatorColor);
-        }
-    }
 
     /// <summary>Dibuja información de caudal por subred sobre el mundo.</summary>
     private void DrawSubnetworkFlowInfo(SpriteBatch spriteBatch)
