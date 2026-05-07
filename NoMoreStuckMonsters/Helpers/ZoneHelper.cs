@@ -25,6 +25,15 @@ public static class ZoneHelper
         typeof(Ghost)
     };
 
+    // Tipos de monstruo que no vuelan pero tienen comportamientos o colisiones especiales que los hacen incompatibles con el pathfinding.
+    private static readonly HashSet<Type> _otherExcludedTypes = new()
+    {
+        // Los dinosaurios no tienen obstaculos de terreno y atacan a distancia, dejo su IA nativa.
+        typeof(DinoMonster),
+        // El Cavadorín se mueve bajo tierra con lógica propia, no debe forzarse con este pathfinding.
+        typeof(Duggy),
+    };
+
     // Tipos que requieren que el update/movimiento nativo siga activo para conservar animaciones/estados internos.
     private static readonly HashSet<Type> _needsNativeAnimation = new()
     {
@@ -74,14 +83,14 @@ public static class ZoneHelper
     /// <returns>True si el monstruo no debe procesarse por el mod.</returns>
     public static bool ShouldSkipMonster(Monster monster, Farmer? player)
     {
-        // Cavadorín: su desplazamiento subterráneo usa lógica propia y no debe forzarse con este pathfinding.
-        if (monster is Duggy) return true;
-
         // Flag nativo de Stardew para cualquier enemigo aéreo
         if (monster.isGlider.Value) return true;
 
-        // Lista explícita para tipos que no siempre usan isGlider correctamente
+        // Lista explícita para tipos voladores que no siempre usan isGlider correctamente
         if (_flyingTypes.Contains(monster.GetType())) return true;
+
+        // Otros tipos de monstruos no voladores que quedan excluidos por su comportamiento o colisiones únicas
+        if (_otherExcludedTypes.Contains(monster.GetType())) return true;
 
         // Sin jugador objetivo: no hay aggro
         if (player == null) return true;
