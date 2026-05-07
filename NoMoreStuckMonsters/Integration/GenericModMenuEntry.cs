@@ -47,69 +47,52 @@ public partial class ModEntry
 
         configMenu.AddSectionTitle(
             mod: ModManifest,
-            text: () => T("config.mines.section")
+            text: () => T("config.zones.section")
         );
 
         configMenu.AddBoolOption(
             mod: ModManifest,
-            name: () => T("config.zone.enabled.name"),
-            tooltip: () => T("config.zone.enabled.tooltip"),
-            getValue: () => _config.Mines.Enabled,
-            setValue: value => _config.Mines.Enabled = value
+            name: () => T("config.zone.mines.name"),
+            tooltip: () => T("config.zone.mines.tooltip"),
+            getValue: () => _config.Mines,
+            setValue: value => _config.Mines = value
         );
 
-        configMenu.AddNumberOption(
+        configMenu.AddBoolOption(
             mod: ModManifest,
-            name: () => T("config.zone.recalcInterval.name"),
-            tooltip: () => T("config.zone.recalcInterval.tooltip"),
-            getValue: () => _config.Mines.RecalcInterval,
-            setValue: value => _config.Mines.RecalcInterval = value,
-            min: 1,
-            max: 240,
-            interval: 1
+            name: () => T("config.zone.volcano.name"),
+            tooltip: () => T("config.zone.volcano.tooltip"),
+            getValue: () => _config.Volcano,
+            setValue: value => _config.Volcano = value
         );
 
-        configMenu.AddNumberOption(
+        configMenu.AddBoolOption(
             mod: ModManifest,
-            name: () => T("config.zone.maxAStarNodes.name"),
-            tooltip: () => T("config.zone.maxAStarNodes.tooltip"),
-            getValue: () => _config.Mines.MaxAStarNodes,
-            setValue: value => _config.Mines.MaxAStarNodes = value,
-            min: 50,
-            max: 2000,
-            interval: 10
+            name: () => T("config.zone.farm.name"),
+            tooltip: () => T("config.zone.farm.tooltip"),
+            getValue: () => _config.Farm,
+            setValue: value => _config.Farm = value
         );
 
-        configMenu.AddNumberOption(
+        configMenu.AddBoolOption(
             mod: ModManifest,
-            name: () => T("config.zone.stuckThreshold.name"),
-            tooltip: () => T("config.zone.stuckThreshold.tooltip"),
-            getValue: () => _config.Mines.StuckThreshold,
-            setValue: value => _config.Mines.StuckThreshold = value,
-            min: 1,
-            max: 240,
-            interval: 1
+            name: () => T("config.zone.wilderness.name"),
+            tooltip: () => T("config.zone.wilderness.tooltip"),
+            getValue: () => _config.Wilderness,
+            setValue: value => _config.Wilderness = value
         );
 
         configMenu.AddSectionTitle(
             mod: ModManifest,
-            text: () => T("config.farm.section")
-        );
-
-        configMenu.AddBoolOption(
-            mod: ModManifest,
-            name: () => T("config.zone.enabled.name"),
-            tooltip: () => T("config.zone.enabled.tooltip"),
-            getValue: () => _config.Farm.Enabled,
-            setValue: value => _config.Farm.Enabled = value
+            text: () => T("config.pathfinding.section")
         );
 
         configMenu.AddNumberOption(
             mod: ModManifest,
             name: () => T("config.zone.recalcInterval.name"),
             tooltip: () => T("config.zone.recalcInterval.tooltip"),
-            getValue: () => _config.Farm.RecalcInterval,
-            setValue: value => _config.Farm.RecalcInterval = value,
+            getValue: () => _config.Pathfinding.RecalcInterval,
+            setValue: value => _config.Pathfinding.RecalcInterval = value,
             min: 1,
             max: 240,
             interval: 1
@@ -119,10 +102,10 @@ public partial class ModEntry
             mod: ModManifest,
             name: () => T("config.zone.maxAStarNodes.name"),
             tooltip: () => T("config.zone.maxAStarNodes.tooltip"),
-            getValue: () => _config.Farm.MaxAStarNodes,
-            setValue: value => _config.Farm.MaxAStarNodes = value,
+            getValue: () => _config.Pathfinding.MaxAStarNodes,
+            setValue: value => _config.Pathfinding.MaxAStarNodes = value,
             min: 50,
-            max: 2000,
+            max: 1000,
             interval: 10
         );
 
@@ -130,10 +113,10 @@ public partial class ModEntry
             mod: ModManifest,
             name: () => T("config.zone.stuckThreshold.name"),
             tooltip: () => T("config.zone.stuckThreshold.tooltip"),
-            getValue: () => _config.Farm.StuckThreshold,
-            setValue: value => _config.Farm.StuckThreshold = value,
+            getValue: () => _config.Pathfinding.StuckThreshold,
+            setValue: value => _config.Pathfinding.StuckThreshold = value,
             min: 1,
-            max: 240,
+            max: 120,
             interval: 1
         );
 

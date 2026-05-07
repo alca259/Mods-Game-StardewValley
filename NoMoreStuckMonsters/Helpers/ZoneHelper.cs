@@ -40,26 +40,6 @@ public static class ZoneHelper
         typeof(RockCrab)
     };
 
-    /// <summary>Devuelve el tipo de zona para una GameLocation concreta.</summary>
-    /// <param name="location">Localización a evaluar.</param>
-    /// <returns>Tipo de zona mapeado para la localización.</returns>
-    public static ZoneType GetZoneType(GameLocation location)
-    {
-        if (location == null) return ZoneType.None;
-
-        // MineShaft cubre todas las plantas de minas estándar y Skull Cavern
-        if (location is MineShaft) return ZoneType.Mines;
-
-        // VolcanoDungeon (Isla Ginger) tiene enemigos terrestres y suelo sólido
-        if (location is VolcanoDungeon) return ZoneType.Mines;
-
-        // Granja principal y construcciones interiores de la granja
-        if (location is Farm || location is FarmHouse)
-            return ZoneType.Farm;
-
-        return ZoneType.None;
-    }
-
     /// <summary>
     /// Devuelve la ZoneConfig activa para la localización dada,
     /// o null si la zona no está habilitada en la configuración.
@@ -69,12 +49,21 @@ public static class ZoneHelper
     /// <returns>Configuración de zona activa o null si no aplica.</returns>
     public static ZoneConfig? GetActiveConfig(GameLocation location, ModConfig cfg)
     {
-        return GetZoneType(location) switch
-        {
-            ZoneType.Mines when cfg.Mines.Enabled => cfg.Mines,
-            ZoneType.Farm when cfg.Farm.Enabled => cfg.Farm,
-            _ => null
-        };
+        ArgumentNullException.ThrowIfNull(location);
+        ArgumentNullException.ThrowIfNull(cfg);
+
+        // Zonas conocidas por tipo (más robusto que nombres de mapa)
+        if (location is MineShaft)
+            return cfg.Mines ? cfg.Pathfinding : null;
+
+        if (location is VolcanoDungeon)
+            return cfg.Volcano ? cfg.Pathfinding : null;
+
+        if (location is Farm || location is FarmHouse)
+            return cfg.Farm ? cfg.Pathfinding : null;
+
+        // Fallback general para otras localizaciones (incluye mods de contenido).
+        return cfg.Wilderness ? cfg.Pathfinding : null;
     }
 
     /// <summary>Devuelve true si el monstruo debe ser excluido del pathfinding.</summary>
