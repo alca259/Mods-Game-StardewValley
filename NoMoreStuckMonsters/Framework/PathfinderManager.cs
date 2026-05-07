@@ -342,6 +342,11 @@ public class PathfinderManager
     /// <param name="direction">Dirección de sprite: 0=arriba, 1=derecha, 2=abajo, 3=izquierda.</param>
     private static void AnimateWalking(Monster monster, int direction)
     {
+        // Slimes (incluyendo variantes grandes) usan animación cíclica propia.
+        // Forzar AnimateUp/Down/Left/Right puede pisar su "respiración".
+        if (monster is GreenSlime || monster is BigSlime)
+            return;
+
         switch (direction)
         {
             case 0:
