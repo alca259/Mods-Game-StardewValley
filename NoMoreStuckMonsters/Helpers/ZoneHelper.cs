@@ -74,6 +74,9 @@ public static class ZoneHelper
     /// <returns>True si el monstruo no debe procesarse por el mod.</returns>
     public static bool ShouldSkipMonster(Monster monster, Farmer? player)
     {
+        // Cavadorín: su desplazamiento subterráneo usa lógica propia y no debe forzarse con este pathfinding.
+        if (monster is Duggy) return true;
+
         // Flag nativo de Stardew para cualquier enemigo aéreo
         if (monster.isGlider.Value) return true;
 
