@@ -25,6 +25,12 @@ public static class ZoneHelper
         typeof(Ghost)
     };
 
+    // Tipos que requieren que el update/movimiento nativo siga activo para conservar animaciones/estados internos.
+    private static readonly HashSet<Type> _needsNativeAnimation = new()
+    {
+        typeof(RockCrab)
+    };
+
     /// <summary>Devuelve el tipo de zona para una GameLocation concreta.</summary>
     /// <param name="location">Localización a evaluar.</param>
     /// <returns>Tipo de zona mapeado para la localización.</returns>
@@ -86,5 +92,14 @@ public static class ZoneHelper
         if (monster is GreenSlime slime && slime.CanSocialize) return true;
 
         return false;
+    }
+
+    /// <summary>Indica si el monstruo necesita conservar su ciclo nativo de animación.</summary>
+    /// <param name="monster">Monstruo a evaluar.</param>
+    /// <returns>True si requiere mantener speed nativo durante UpdateTicking.</returns>
+    public static bool NeedsNativeAnimation(Monster monster)
+    {
+        ArgumentNullException.ThrowIfNull(monster);
+        return _needsNativeAnimation.Contains(monster.GetType());
     }
 }

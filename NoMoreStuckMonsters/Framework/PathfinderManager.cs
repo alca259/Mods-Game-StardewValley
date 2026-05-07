@@ -196,7 +196,9 @@ public class PathfinderManager
         Vector2 primaryMove = BuildPrimaryCardinalMovement(toNext, speed);
         if (TryMoveWithCollision(monster, primaryMove))
         {
-            monster.faceDirection(VectorToDirection(Vector2.Normalize(primaryMove)));
+            int direction = VectorToDirection(Vector2.Normalize(primaryMove));
+            monster.faceDirection(direction);
+            AnimateWalking(monster, direction);
             return true;
         }
 
@@ -204,7 +206,9 @@ public class PathfinderManager
         Vector2 secondaryMove = BuildSecondaryCardinalMovement(toNext, speed);
         if (secondaryMove != Vector2.Zero && TryMoveWithCollision(monster, secondaryMove))
         {
-            monster.faceDirection(VectorToDirection(Vector2.Normalize(secondaryMove)));
+            int direction = VectorToDirection(Vector2.Normalize(secondaryMove));
+            monster.faceDirection(direction);
+            AnimateWalking(monster, direction);
             return true;
         }
 
@@ -328,6 +332,31 @@ public class PathfinderManager
         if (Math.Abs(dir.X) >= Math.Abs(dir.Y))
             return dir.X > 0 ? 1 : 3;
         return dir.Y > 0 ? 2 : 0;
+    }
+
+    /// <summary>
+    /// Avanza manualmente un frame de la animación de caminar del monstruo.
+    /// Se usa cuando el movimiento se aplica reasignando Position.
+    /// </summary>
+    /// <param name="monster">Monstruo a animar.</param>
+    /// <param name="direction">Dirección de sprite: 0=arriba, 1=derecha, 2=abajo, 3=izquierda.</param>
+    private static void AnimateWalking(Monster monster, int direction)
+    {
+        switch (direction)
+        {
+            case 0:
+                monster.Sprite.AnimateUp(Game1.currentGameTime, 0, string.Empty);
+                break;
+            case 1:
+                monster.Sprite.AnimateRight(Game1.currentGameTime, 0, string.Empty);
+                break;
+            case 2:
+                monster.Sprite.AnimateDown(Game1.currentGameTime, 0, string.Empty);
+                break;
+            case 3:
+                monster.Sprite.AnimateLeft(Game1.currentGameTime, 0, string.Empty);
+                break;
+        }
     }
     #endregion
 

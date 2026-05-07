@@ -101,8 +101,13 @@ public partial class ModEntry : Mod
 
             int id = monster.GetHashCode();
             _savedSpeeds[id] = monster.speed;
-            // Cancelamos el desplazamiento nativo en este frame.
-            monster.speed = 0;
+
+            // Monstruos con animación/estado interno sensible mantienen su ciclo nativo.
+            if (!ZoneHelper.NeedsNativeAnimation(monster))
+            {
+                // Cancelamos el desplazamiento nativo en este frame.
+                monster.speed = 0;
+            }
         }
     }
 
