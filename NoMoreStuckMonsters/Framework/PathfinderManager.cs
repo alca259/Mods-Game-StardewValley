@@ -71,6 +71,7 @@ public class PathfinderManager
         {
             state.FramesSinceCalc = 0;
             state.StuckFrames = 0;
+            state.ClumpTiles = BuildClumpTileSet(location);
 
             Rectangle bounds = monster.GetBoundingBox();
             var path = AStarPathfinder.FindPath(
@@ -79,7 +80,8 @@ public class PathfinderManager
                 location,
                 cfg.MaxAStarNodes,
                 bounds.Width,
-                bounds.Height);
+                bounds.Height,
+                state.ClumpTiles);
 
             if (path != null && path.Count > 0)
                 state.Path = path;
@@ -197,7 +199,7 @@ public class PathfinderManager
 
         // Movimiento cardinal prioritario para evitar cortes diagonales contra obstáculos.
         Vector2 primaryMove = BuildPrimaryCardinalMovement(toNext, speed, state.LastDirection);
-        if (TryMoveWithCollision(monster, primaryMove))
+        if (TryMoveWithCollision(monster, primaryMove, state.ClumpTiles))
         {
             int direction = VectorToDirection(Vector2.Normalize(primaryMove));
             monster.faceDirection(direction);
@@ -208,7 +210,7 @@ public class PathfinderManager
 
         // Si el eje principal está bloqueado, intentamos el eje secundario antes de recalcular.
         Vector2 secondaryMove = BuildSecondaryCardinalMovement(toNext, speed);
-        if (secondaryMove != Vector2.Zero && TryMoveWithCollision(monster, secondaryMove))
+        if (secondaryMove != Vector2.Zero && TryMoveWithCollision(monster, secondaryMove, state.ClumpTiles))
         {
             int direction = VectorToDirection(Vector2.Normalize(secondaryMove));
             monster.faceDirection(direction);
@@ -272,7 +274,7 @@ public class PathfinderManager
     /// <param name="monster">Monstruo a desplazar.</param>
     /// <param name="movement">Desplazamiento total deseado para el tick.</param>
     /// <returns>True si logró desplazarse al menos un subpaso.</returns>
-    private static bool TryMoveWithCollision(Monster monster, Vector2 movement)
+    private static bool TryMoveWithCollision(Monster monster, Vector2 movement, HashSet<Point> clumpTiles)
     {
         float distance = movement.Length();
         if (distance <= 0f)
@@ -285,7 +287,7 @@ public class PathfinderManager
         for (int i = 0; i < steps; i++)
         {
             Vector2 nextPos = monster.Position + step;
-            if (IsPositionBlocked(monster, nextPos))
+            if (IsPositionBlocked(monster, nextPos, clumpTiles))
                 break;
 
             monster.Position = nextPos;
@@ -299,7 +301,7 @@ public class PathfinderManager
     /// <param name="monster">Monstruo a evaluar.</param>
     /// <param name="nextPosition">Posición candidata en píxeles.</param>
     /// <returns>True si la posición está bloqueada.</returns>
-    private static bool IsPositionBlocked(Monster monster, Vector2 nextPosition)
+    private static bool IsPositionBlocked(Monster monster, Vector2 nextPosition, HashSet<Point> clumpTiles)
     {
         GameLocation location = monster.currentLocation;
         Rectangle nextBounds = monster.GetBoundingBox();
@@ -331,10 +333,36 @@ public class PathfinderManager
 
                 if (!location.isTilePassable(tileVec))
                     return true;
+
+                if (clumpTiles.Contains(new Point(x, y)))
+                    return true;
             }
         }
 
         return false;
+    }
+
+    /// <summary>Construye un set de tiles ocupados por resource clumps para reutilizar en A*.</summary>
+    private static HashSet<Point> BuildClumpTileSet(GameLocation location)
+    {
+        HashSet<Point> tiles = new();
+
+        foreach (var clump in location.resourceClumps)
+        {
+            Rectangle bounds = clump.getBoundingBox();
+            int x0 = bounds.Left / Game1.tileSize;
+            int y0 = bounds.Top / Game1.tileSize;
+            int x1 = (bounds.Right - 1) / Game1.tileSize;
+            int y1 = (bounds.Bottom - 1) / Game1.tileSize;
+
+            for (int x = x0; x <= x1; x++)
+            {
+                for (int y = y0; y <= y1; y++)
+                    tiles.Add(new Point(x, y));
+            }
+        }
+
+        return tiles;
     }
 
     /// <summary>Convierte un vector de dirección en una dirección de sprite (0-3).</summary>
@@ -388,6 +416,7 @@ public class PathfinderManager
     private class MonsterPathState
     {
         public List<Vector2>? Path = null;
+        public HashSet<Point> ClumpTiles = new();
         public int FramesSinceCalc = 0;
         public int StuckFrames = 0;
         public Vector2 LastPosition = Vector2.Zero;

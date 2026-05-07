@@ -26,7 +26,8 @@ public static class AStarPathfinder
         GameLocation location,
         int maxNodes = 400,
         int entityWidth = 64,
-        int entityHeight = 64)
+        int entityHeight = 64,
+        HashSet<Point>? clumpTiles = null)
     {
         if (entityWidth <= 0)
             throw new ArgumentOutOfRangeException(nameof(entityWidth));
@@ -41,18 +42,18 @@ public static class AStarPathfinder
         Point start = PixelToTile(fromPixel);
         Point goal = PixelToTile(toPixel);
 
-        if (IsTileBlocked(start, location, widthTiles, heightTiles))
+        if (IsTileBlocked(start, location, widthTiles, heightTiles, clumpTiles))
         {
-            var nearestStart = FindNearestWalkableTile(start, goal, location, widthTiles, heightTiles);
+            var nearestStart = FindNearestWalkableTile(start, goal, location, widthTiles, heightTiles, clumpTiles);
             if (nearestStart == null)
                 return null;
 
             start = nearestStart.Value;
         }
 
-        if (IsTileBlocked(goal, location, widthTiles, heightTiles))
+        if (IsTileBlocked(goal, location, widthTiles, heightTiles, clumpTiles))
         {
-            var nearestGoal = FindNearestWalkableTile(goal, start, location, widthTiles, heightTiles);
+            var nearestGoal = FindNearestWalkableTile(goal, start, location, widthTiles, heightTiles, clumpTiles);
             if (nearestGoal == null)
                 return null;
 
@@ -91,7 +92,7 @@ public static class AStarPathfinder
                 if (closedSet.Contains(neighbor))
                     continue;
 
-                if (IsTileBlocked(neighbor, location, widthTiles, heightTiles)) continue;
+                if (IsTileBlocked(neighbor, location, widthTiles, heightTiles, clumpTiles)) continue;
 
                 float tentativeG = gScore[current] + 1f;
 
@@ -117,7 +118,7 @@ public static class AStarPathfinder
     /// <param name="widthTiles">Ancho de huella en tiles.</param>
     /// <param name="heightTiles">Alto de huella en tiles.</param>
     /// <returns>True si cualquier tile de la huella está bloqueado.</returns>
-    private static bool IsTileBlocked(Point tile, GameLocation location, int widthTiles, int heightTiles)
+    private static bool IsTileBlocked(Point tile, GameLocation location, int widthTiles, int heightTiles, HashSet<Point>? clumpTiles)
     {
         int maxX = tile.X + widthTiles - 1;
         int maxY = tile.Y + heightTiles - 1;
@@ -145,6 +146,10 @@ public static class AStarPathfinder
 
                 // 3. Validación final de transitabilidad del tile
                 if (!location.isTilePassable(tileVec))
+                    return true;
+
+                // 4. Resource clumps (rocas/troncos grandes) precalculados por recálculo
+                if (clumpTiles != null && clumpTiles.Contains(new Point(x, y)))
                     return true;
             }
         }
@@ -190,7 +195,13 @@ public static class AStarPathfinder
     /// <param name="widthTiles">Ancho de huella en tiles.</param>
     /// <param name="heightTiles">Alto de huella en tiles.</param>
     /// <returns>Tile alternativo caminable o null si no encuentra candidato.</returns>
-    private static Point? FindNearestWalkableTile(Point blockedTile, Point towardTile, GameLocation location, int widthTiles, int heightTiles)
+    private static Point? FindNearestWalkableTile(
+        Point blockedTile,
+        Point towardTile,
+        GameLocation location,
+        int widthTiles,
+        int heightTiles,
+        HashSet<Point>? clumpTiles)
     {
         const int maxRadius = 8;
         Point? best = null;
@@ -203,9 +214,9 @@ public static class AStarPathfinder
                 int absDx = Math.Abs(dx);
                 int dy = radius - absDx;
 
-                TryCandidate(new Point(blockedTile.X + dx, blockedTile.Y + dy), blockedTile, towardTile, location, widthTiles, heightTiles, ref best, ref bestScore);
+                TryCandidate(new Point(blockedTile.X + dx, blockedTile.Y + dy), blockedTile, towardTile, location, widthTiles, heightTiles, clumpTiles, ref best, ref bestScore);
                 if (dy != 0)
-                    TryCandidate(new Point(blockedTile.X + dx, blockedTile.Y - dy), blockedTile, towardTile, location, widthTiles, heightTiles, ref best, ref bestScore);
+                    TryCandidate(new Point(blockedTile.X + dx, blockedTile.Y - dy), blockedTile, towardTile, location, widthTiles, heightTiles, clumpTiles, ref best, ref bestScore);
             }
         }
 
@@ -228,10 +239,11 @@ public static class AStarPathfinder
         GameLocation location,
         int widthTiles,
         int heightTiles,
+        HashSet<Point>? clumpTiles,
         ref Point? best,
         ref float bestScore)
     {
-        if (IsTileBlocked(candidate, location, widthTiles, heightTiles))
+        if (IsTileBlocked(candidate, location, widthTiles, heightTiles, clumpTiles))
             return;
 
         float distanceFromBlocked = Heuristic(candidate, blockedTile);
