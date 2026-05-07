@@ -29,6 +29,7 @@ public partial class ModEntry : Mod
     private ModConfig _config = null!;
     private static PathfinderManager _pathfinderManager = default!;
     private readonly Dictionary<int, int> _savedSpeeds = new();
+    private readonly Dictionary<int, Vector2> _savedNativePositions = new();
     #endregion
 
     #region Override entry point
@@ -92,6 +93,7 @@ public partial class ModEntry : Mod
         if (ZoneHelper.GetActiveConfig(location, _config) == null) return;
 
         _savedSpeeds.Clear();
+        _savedNativePositions.Clear();
 
         var farmer = location.farmers.FirstOrDefault();
         foreach (var character in location.characters)
@@ -103,7 +105,12 @@ public partial class ModEntry : Mod
             _savedSpeeds[id] = monster.speed;
 
             // Monstruos con animación/estado interno sensible mantienen su ciclo nativo.
-            if (!ZoneHelper.NeedsNativeAnimation(monster))
+            if (ZoneHelper.NeedsNativeAnimation(monster))
+            {
+                // Guardamos la posición previa al update nativo para evitar doble desplazamiento.
+                _savedNativePositions[id] = monster.Position;
+            }
+            else
             {
                 // Cancelamos el desplazamiento nativo en este frame.
                 monster.speed = 0;
@@ -146,6 +153,14 @@ public partial class ModEntry : Mod
             // Reponemos velocidad original antes de aplicar movimiento personalizado.
             monster.speed = realSpeed;
 
+            // Conservamos los efectos del update nativo (animación/estado), pero neutralizamos
+            // su desplazamiento para no sumar movimiento nativo + pathfinding propio.
+            if (ZoneHelper.NeedsNativeAnimation(monster)
+                && _savedNativePositions.TryGetValue(id, out Vector2 previousPosition))
+            {
+                monster.Position = previousPosition;
+            }
+
             _pathfinderManager.TryMoveMonster(
                 monster,
                 monster.GetBoundingBox().Center.ToVector2(),
@@ -155,6 +170,7 @@ public partial class ModEntry : Mod
         }
 
         _savedSpeeds.Clear();
+        _savedNativePositions.Clear();
     }
 
     /// <summary>Limpia el estado temporal al cambiar de localización.</summary>
@@ -165,6 +181,7 @@ public partial class ModEntry : Mod
         RestoreSavedSpeeds(e.OldLocation);
         _pathfinderManager.ClearCache();
         _savedSpeeds.Clear();
+        _savedNativePositions.Clear();
     }
 
     /// <summary>Limpia el estado temporal al cargar una partida guardada.</summary>
@@ -175,6 +192,7 @@ public partial class ModEntry : Mod
         RestoreSavedSpeeds(Game1.currentLocation);
         _pathfinderManager.ClearCache();
         _savedSpeeds.Clear();
+        _savedNativePositions.Clear();
     }
 
     /// <summary>Dibuja el overlay de depuración de rutas A* para los monstruos procesados.</summary>
@@ -232,6 +250,7 @@ public partial class ModEntry : Mod
         }
 
         _savedSpeeds.Clear();
+        _savedNativePositions.Clear();
     }
 
     /// <summary>Dibuja una casilla del mundo convertida a coordenadas de pantalla.</summary>
