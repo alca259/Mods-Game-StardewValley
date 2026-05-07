@@ -15,6 +15,9 @@ public class PathfinderManager
     /// <summary>Distancia en píxeles para cada paso de colisión.</summary>
     private const float CollisionStepPixels = 16f;
 
+    /// <summary>Margen para mantener el eje de avance previo y evitar oscilación de dirección.</summary>
+    private const float AxisHysteresisPixels = 6f;
+
     /// <summary>Ticks entre limpiezas incrementales de estados huérfanos.</summary>
     private const int CleanupIntervalTicks = 60;
 
@@ -193,12 +196,13 @@ public class PathfinderManager
             return true;
 
         // Movimiento cardinal prioritario para evitar cortes diagonales contra obstáculos.
-        Vector2 primaryMove = BuildPrimaryCardinalMovement(toNext, speed);
+        Vector2 primaryMove = BuildPrimaryCardinalMovement(toNext, speed, state.LastDirection);
         if (TryMoveWithCollision(monster, primaryMove))
         {
             int direction = VectorToDirection(Vector2.Normalize(primaryMove));
             monster.faceDirection(direction);
             AnimateWalking(monster, direction);
+            state.LastDirection = direction;
             return true;
         }
 
@@ -209,6 +213,7 @@ public class PathfinderManager
             int direction = VectorToDirection(Vector2.Normalize(secondaryMove));
             monster.faceDirection(direction);
             AnimateWalking(monster, direction);
+            state.LastDirection = direction;
             return true;
         }
 
@@ -224,10 +229,18 @@ public class PathfinderManager
     /// <param name="toNext">Vector hacia el siguiente waypoint.</param>
     /// <param name="speed">Velocidad a aplicar en el tick actual.</param>
     /// <returns>Vector de movimiento en eje X o Y.</returns>
-    private static Vector2 BuildPrimaryCardinalMovement(Vector2 toNext, float speed)
+    private static Vector2 BuildPrimaryCardinalMovement(Vector2 toNext, float speed, int lastDirection)
     {
-        if (Math.Abs(toNext.X) >= Math.Abs(toNext.Y))
+        float absX = Math.Abs(toNext.X);
+        float absY = Math.Abs(toNext.Y);
+        bool keepHorizontal = (lastDirection == 1 || lastDirection == 3) && absY > absX && (absY - absX) <= AxisHysteresisPixels;
+        bool keepVertical = (lastDirection == 0 || lastDirection == 2) && absX > absY && (absX - absY) <= AxisHysteresisPixels;
+
+        if (absX >= absY || keepHorizontal)
             return new Vector2(Math.Sign(toNext.X), 0f) * speed;
+
+        if (keepVertical)
+            return new Vector2(0f, Math.Sign(toNext.Y)) * speed;
 
         return new Vector2(0f, Math.Sign(toNext.Y)) * speed;
     }
@@ -378,6 +391,7 @@ public class PathfinderManager
         public int FramesSinceCalc = 0;
         public int StuckFrames = 0;
         public Vector2 LastPosition = Vector2.Zero;
+        public int LastDirection = -1;
     }
     #endregion
 }
