@@ -87,7 +87,7 @@ public class PathfinderManager
         Vector2 fromPixel,
         Vector2 targetPixel,
         GameLocation location,
-        ZoneConfig cfg)
+        PathFindingConfiguration cfg)
     {
         int id = monster.GetHashCode();
         if (!_states.TryGetValue(id, out var state))

@@ -47,7 +47,7 @@ public static class ZoneHelper
     /// <param name="location">Localización actual.</param>
     /// <param name="cfg">Configuración global del mod.</param>
     /// <returns>Configuración de zona activa o null si no aplica.</returns>
-    public static ZoneConfig? GetActiveConfig(GameLocation location, ModConfig cfg)
+    public static PathFindingConfiguration? GetActiveConfig(GameLocation location, ModConfig cfg)
     {
         ArgumentNullException.ThrowIfNull(location);
         ArgumentNullException.ThrowIfNull(cfg);

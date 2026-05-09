@@ -14,7 +14,7 @@
   "config.zone.volcano.tooltip": "Apply pathfinding in Volcano Dungeon.",
   "config.zone.farm.name": "Enable Farm",
   "config.zone.farm.tooltip": "Apply pathfinding in Farm and FarmHouse.",
-  "config.zone.wilderness.name": "Enable Wilderness fallback",
+  "config.zone.wilderness.name": "Enable in other locations",
   "config.zone.wilderness.tooltip": "Apply pathfinding in any location not covered by Mines, Volcano, or Farm.",
   "config.zone.recalcInterval.name": "Recalc interval (frames)",
   "config.zone.recalcInterval.tooltip": "Frames between A* recalculations.",
