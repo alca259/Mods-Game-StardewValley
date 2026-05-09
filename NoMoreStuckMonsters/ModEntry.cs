@@ -1,4 +1,4 @@
-﻿using Alca259.Common;
+using Alca259.Common;
 using Microsoft.Xna.Framework;
 using NoMoreStuckMonsters.Framework;
 using NoMoreStuckMonsters.Helpers;
@@ -138,6 +138,10 @@ public partial class ModEntry : Mod
         if (cfg == null) return;
 
         _pathfinderManager.CleanupOrphanStates(location);
+
+        // Prepara el estado compartido del frame: reconstruye clump tiles si es necesario
+        // y actualiza contadores. Debe llamarse una vez por frame, antes del bucle de monstruos.
+        _pathfinderManager.PrepareFrame(location);
 
         // Necesitamos al menos un jugador como objetivo
         var player = location.farmers?.FirstOrDefault();

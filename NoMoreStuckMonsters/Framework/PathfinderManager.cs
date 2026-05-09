@@ -11,7 +11,7 @@ namespace NoMoreStuckMonsters.Framework;
 /// </summary>
 public class PathfinderManager
 {
-    #region Campos
+    #region Constantes
     /// <summary>Distancia en píxeles para cada paso de colisión.</summary>
     private const float CollisionStepPixels = 16f;
 
@@ -21,14 +21,56 @@ public class PathfinderManager
     /// <summary>Ticks entre limpiezas incrementales de estados huérfanos.</summary>
     private const int CleanupIntervalTicks = 60;
 
+    /// <summary>
+    /// Frames entre reconstrucciones del set de resource clumps compartido.
+    /// Dos segundos a 60 fps son suficientes para reflejar rocas/troncos destruidos.
+    /// </summary>
+    private const int ClumpRebuildInterval = 120;
+    #endregion
+
+    #region Campos de instancia
     /// <summary>La key es el GetHashCode() del monstruo, que es único por instancia en la sesión.</summary>
     private readonly Dictionary<int, MonsterPathState> _states = new();
 
     /// <summary>Contador interno para espaciar la limpieza incremental.</summary>
     private int _cleanupTickCounter;
+
+    /// <summary>Set de tiles bloqueados por resource clumps, compartido entre todos los monstruos.</summary>
+    private HashSet<Point> _sharedClumpTiles = new();
+
+    /// <summary>Nombre de la localización para la que se construyó <see cref="_sharedClumpTiles"/>.</summary>
+    private string? _sharedClumpTilesLocationName;
+
+    /// <summary>Frames transcurridos desde la última reconstrucción de clump tiles.</summary>
+    private int _clumpTilesAge = ClumpRebuildInterval; // fuerza rebuild en el primer PrepareFrame
     #endregion
 
     #region API pública
+    /// <summary>
+    /// Prepara el estado compartido para el frame actual.
+    /// Debe llamarse UNA VEZ por frame, antes de procesar los monstruos.
+    /// Reconstruye los clump tiles si la localización cambió o el intervalo expiró.
+    /// </summary>
+    /// <param name="location">Localización activa en este frame.</param>
+    public void PrepareFrame(GameLocation location)
+    {
+        ArgumentNullException.ThrowIfNull(location);
+
+        bool locationChanged = location.Name != _sharedClumpTilesLocationName;
+        bool expired = _clumpTilesAge >= ClumpRebuildInterval;
+
+        if (locationChanged || expired)
+        {
+            _sharedClumpTiles = BuildClumpTileSet(location);
+            _sharedClumpTilesLocationName = location.Name;
+            _clumpTilesAge = 0;
+        }
+        else
+        {
+            _clumpTilesAge++;
+        }
+    }
+
     /// <summary>
     /// Intenta mover <paramref name="monster"/> hacia <paramref name="targetPixel"/>
     /// usando la estrategia indicada por <paramref name="cfg"/>.
@@ -60,9 +102,8 @@ public class PathfinderManager
         state.StuckFrames = moved ? 0 : state.StuckFrames + 1;
         state.LastPosition = fromPixel;
 
-        bool needsRecalc =
-            state.Path == null
-            || state.Path.Count == 0
+        bool pathExhausted = state.Path == null || state.PathIndex >= state.Path.Count;
+        bool needsRecalc = pathExhausted
             || state.FramesSinceCalc >= cfg.RecalcInterval
             || state.StuckFrames >= cfg.StuckThreshold;
 
@@ -71,26 +112,38 @@ public class PathfinderManager
         {
             state.FramesSinceCalc = 0;
             state.StuckFrames = 0;
-            state.ClumpTiles = BuildClumpTileSet(location);
 
             Rectangle bounds = monster.GetBoundingBox();
             var path = AStarPathfinder.FindPath(
-                fromPixel,
-                targetPixel,
-                location,
-                cfg.MaxAStarNodes,
-                bounds.Width,
-                bounds.Height,
-                state.ClumpTiles);
+                fromPixel: fromPixel,
+                toPixel: targetPixel,
+                location: location,
+                maxNodes: cfg.MaxAStarNodes,
+                entityWidth: bounds.Width,
+                entityHeight: bounds.Height,
+                clumpTiles: _sharedClumpTiles);
 
             if (path != null && path.Count > 0)
+            {
                 state.Path = path;
+                state.PathIndex = 0;
+                // Guardamos copia persistente para el overlay de depuración.
+                state.LastDebugPath = path;
+            }
             else
+            {
                 state.Path = null;
+                state.PathIndex = 0;
+            }
         }
 
-        if (state.Path?.Count > 0)
-            return FollowAStarPath(monster, state);
+        if (state.Path != null && state.PathIndex < state.Path.Count)
+        {
+            return FollowAStarPath(
+                monster: monster,
+                state: state,
+                clumpTiles: _sharedClumpTiles);
+        }
 
         return true;
     }
@@ -100,6 +153,9 @@ public class PathfinderManager
     {
         _states.Clear();
         _cleanupTickCounter = 0;
+        _sharedClumpTiles = new HashSet<Point>();
+        _sharedClumpTilesLocationName = null;
+        _clumpTilesAge = ClumpRebuildInterval; // fuerza rebuild en el próximo PrepareFrame
     }
 
     /// <summary>
@@ -139,26 +195,30 @@ public class PathfinderManager
     }
 
     /// <summary>
-    /// Intenta devolver la ruta A* actual en coordenadas de tile para depuración visual.
+    /// Intenta devolver la última ruta A* conocida en coordenadas de tile para depuración visual.
+    /// Usa <see cref="MonsterPathState.LastDebugPath"/> en lugar de <see cref="MonsterPathState.Path"/>
+    /// para que el overlay persista entre recálculos y no parpadee cuando Path es temporalmente null.
     /// </summary>
     /// <param name="monster">Monstruo a consultar.</param>
     /// <param name="pathTiles">Salida con la ruta en tiles si existe.</param>
-    /// <returns>True si hay ruta A* activa para ese monstruo.</returns>
+    /// <returns>True si hay ruta A* conocida para ese monstruo.</returns>
     public bool TryGetDebugPathTiles(Monster monster, out List<Point> pathTiles)
     {
-        pathTiles = new List<Point>();
-
         int id = monster.GetHashCode();
-        if (!_states.TryGetValue(id, out var state))
+        if (!_states.TryGetValue(id, out var state) || state.LastDebugPath is not { Count: > 0 })
+        {
+            pathTiles = new List<Point>();
             return false;
+        }
 
-        if (state.Path == null || state.Path.Count == 0)
-            return false;
-
-        foreach (var tile in state.Path)
+        // Solo asignamos la lista en el caso positivo
+        pathTiles = new List<Point>(state.LastDebugPath.Count);
+        foreach (var tile in state.LastDebugPath)
+        {
             pathTiles.Add(new Point((int)tile.X, (int)tile.Y));
+        }
 
-        return pathTiles.Count > 0;
+        return true;
     }
     #endregion
 
@@ -166,40 +226,43 @@ public class PathfinderManager
     /// <summary>Avanza al monstruo un paso a lo largo de la ruta A* calculada.</summary>
     /// <param name="monster">Monstruo a mover.</param>
     /// <param name="state">Estado de navegación del monstruo.</param>
+    /// <param name="clumpTiles">Set de resource clumps compartido.</param>
     /// <returns>True si el método procesó el tick de movimiento.</returns>
-    private static bool FollowAStarPath(Monster monster, MonsterPathState state)
+    private static bool FollowAStarPath(Monster monster, MonsterPathState state, HashSet<Point> clumpTiles)
     {
-        // El path contiene coordenadas de tile; las convertimos a píxeles
-        if (state.Path == null || state.Path.Count == 0)
+        if (state.Path == null || state.PathIndex >= state.Path.Count)
             return false;
 
-        Vector2 monsterCenter = monster.GetBoundingBox().Center.ToVector2();
-        Vector2 nextTileCoord = state.Path[0];
+        // Cacheamos el bounding box una vez: GetBoundingBox() crea un nuevo Rectangle cada llamada
+        // y se invocaba dos veces dentro de este método en la versión anterior.
+        Rectangle bbox = monster.GetBoundingBox();
+        Vector2 monsterCenter = bbox.Center.ToVector2();
+
+        Vector2 nextTileCoord = state.Path[state.PathIndex];
         Vector2 nextPixel = nextTileCoord * Game1.tileSize
                                 + new Vector2(Game1.tileSize / 2f); // centro del tile
 
         float speed = monster.speed;
         float dist = Vector2.Distance(monsterCenter, nextPixel);
 
-        // Nodo alcanzado: eliminarlo y apuntar al siguiente en el próximo tick
+        // Nodo alcanzado: incrementar índice (O(1)) en lugar de RemoveAt(0) (O(n))
         if (dist <= speed + 2f)
-            state.Path.RemoveAt(0);
+            state.PathIndex++;
 
-        if (state.Path.Count == 0)
+        if (state.PathIndex >= state.Path.Count)
             return true; // destino alcanzado, próximo tick recalcula
 
-        nextTileCoord = state.Path[0];
+        nextTileCoord = state.Path[state.PathIndex];
         nextPixel = nextTileCoord * Game1.tileSize + new Vector2(Game1.tileSize / 2f);
 
-        // Mover hacia el siguiente waypoint
-        monsterCenter = monster.GetBoundingBox().Center.ToVector2();
+        // El monstruo no se ha movido aún en este tick, monsterCenter sigue siendo válido
         Vector2 toNext = nextPixel - monsterCenter;
         if (toNext.LengthSquared() <= float.Epsilon)
             return true;
 
         // Movimiento cardinal prioritario para evitar cortes diagonales contra obstáculos.
         Vector2 primaryMove = BuildPrimaryCardinalMovement(toNext, speed, state.LastDirection);
-        if (TryMoveWithCollision(monster, primaryMove, state.ClumpTiles))
+        if (TryMoveWithCollision(monster, primaryMove, clumpTiles))
         {
             int direction = VectorToDirection(Vector2.Normalize(primaryMove));
             monster.faceDirection(direction);
@@ -210,7 +273,7 @@ public class PathfinderManager
 
         // Si el eje principal está bloqueado, intentamos el eje secundario antes de recalcular.
         Vector2 secondaryMove = BuildSecondaryCardinalMovement(toNext, speed);
-        if (secondaryMove != Vector2.Zero && TryMoveWithCollision(monster, secondaryMove, state.ClumpTiles))
+        if (secondaryMove != Vector2.Zero && TryMoveWithCollision(monster, secondaryMove, clumpTiles))
         {
             int direction = VectorToDirection(Vector2.Normalize(secondaryMove));
             monster.faceDirection(direction);
@@ -221,6 +284,7 @@ public class PathfinderManager
 
         // Si ambos ejes fallan, invalidamos la ruta para forzar un nuevo cálculo.
         state.Path = null;
+        state.PathIndex = 0;
 
         return true;
     }
@@ -230,19 +294,20 @@ public class PathfinderManager
     /// <summary>Construye el desplazamiento cardinal principal hacia el siguiente waypoint.</summary>
     /// <param name="toNext">Vector hacia el siguiente waypoint.</param>
     /// <param name="speed">Velocidad a aplicar en el tick actual.</param>
+    /// <param name="lastDirection">Dirección del tick anterior para aplicar histéresis de eje.</param>
     /// <returns>Vector de movimiento en eje X o Y.</returns>
     private static Vector2 BuildPrimaryCardinalMovement(Vector2 toNext, float speed, int lastDirection)
     {
         float absX = Math.Abs(toNext.X);
         float absY = Math.Abs(toNext.Y);
-        bool keepHorizontal = (lastDirection == 1 || lastDirection == 3) && absY > absX && (absY - absX) <= AxisHysteresisPixels;
-        bool keepVertical = (lastDirection == 0 || lastDirection == 2) && absX > absY && (absX - absY) <= AxisHysteresisPixels;
+
+        // Histéresis horizontal: si veníamos moviéndonos en X y la diferencia con Y es pequeña, mantenemos X para no oscilar.
+        bool keepHorizontal = (lastDirection == 1 || lastDirection == 3)
+            && absY > absX
+            && (absY - absX) <= AxisHysteresisPixels;
 
         if (absX >= absY || keepHorizontal)
             return new Vector2(Math.Sign(toNext.X), 0f) * speed;
-
-        if (keepVertical)
-            return new Vector2(0f, Math.Sign(toNext.Y)) * speed;
 
         return new Vector2(0f, Math.Sign(toNext.Y)) * speed;
     }
@@ -273,6 +338,7 @@ public class PathfinderManager
     /// </summary>
     /// <param name="monster">Monstruo a desplazar.</param>
     /// <param name="movement">Desplazamiento total deseado para el tick.</param>
+    /// <param name="clumpTiles">Set de resource clumps compartido.</param>
     /// <returns>True si logró desplazarse al menos un subpaso.</returns>
     private static bool TryMoveWithCollision(Monster monster, Vector2 movement, HashSet<Point> clumpTiles)
     {
@@ -300,10 +366,15 @@ public class PathfinderManager
     /// <summary>Comprueba si la posición candidata del monstruo colisiona con el entorno.</summary>
     /// <param name="monster">Monstruo a evaluar.</param>
     /// <param name="nextPosition">Posición candidata en píxeles.</param>
+    /// <param name="clumpTiles">Set de resource clumps compartido.</param>
     /// <returns>True si la posición está bloqueada.</returns>
     private static bool IsPositionBlocked(Monster monster, Vector2 nextPosition, HashSet<Point> clumpTiles)
     {
         GameLocation location = monster.currentLocation;
+
+        // Cacheamos la capa Buildings ANTES de entrar en los bucles de tiles.
+        var buildingsLayer = location.Map.GetLayer("Buildings");
+
         Rectangle nextBounds = monster.GetBoundingBox();
         int deltaX = (int)Math.Round(nextPosition.X - monster.Position.X);
         int deltaY = (int)Math.Round(nextPosition.Y - monster.Position.Y);
@@ -314,35 +385,31 @@ public class PathfinderManager
         int topTile = nextBounds.Top / Game1.tileSize;
         int bottomTile = (nextBounds.Bottom - 1) / Game1.tileSize;
 
+        int mapWidth = location.Map.Layers[0].LayerWidth;
+        int mapHeight = location.Map.Layers[0].LayerHeight;
+
         for (int x = leftTile; x <= rightTile; x++)
         {
             for (int y = topTile; y <= bottomTile; y++)
             {
+                if (x < 0 || y < 0 || x >= mapWidth || y >= mapHeight)
+                    return true;
+
                 Vector2 tileVec = new(x, y);
-                if (x < 0 || y < 0 ||
-                    x >= location.Map.Layers[0].LayerWidth ||
-                    y >= location.Map.Layers[0].LayerHeight)
-                    return true;
 
-                if (location.Objects.ContainsKey(tileVec))
-                    return true;
-
-                var buildingsLayer = location.Map.GetLayer("Buildings");
-                if (buildingsLayer?.Tiles[x, y] != null)
-                    return true;
-
-                if (!location.isTilePassable(tileVec))
-                    return true;
-
-                if (clumpTiles.Contains(new Point(x, y)))
-                    return true;
+                if (location.Objects.ContainsKey(tileVec)) return true;
+                if (buildingsLayer?.Tiles[x, y] != null) return true;
+                if (!location.isTilePassable(tileVec)) return true;
+                if (clumpTiles.Contains(new Point(x, y))) return true;
             }
         }
 
         return false;
     }
 
-    /// <summary>Construye un set de tiles ocupados por resource clumps para reutilizar en A*.</summary>
+    /// <summary>Construye un set de tiles ocupados por resource clumps.</summary>
+    /// <param name="location">Localización para la que construir el set.</param>
+    /// <returns>Set de tiles ocupados por resource clumps.</returns>
     private static HashSet<Point> BuildClumpTileSet(GameLocation location)
     {
         HashSet<Point> tiles = new();
@@ -358,7 +425,9 @@ public class PathfinderManager
             for (int x = x0; x <= x1; x++)
             {
                 for (int y = y0; y <= y1; y++)
+                {
                     tiles.Add(new Point(x, y));
+                }
             }
         }
 
@@ -371,7 +440,10 @@ public class PathfinderManager
     private static int VectorToDirection(Vector2 dir)
     {
         if (Math.Abs(dir.X) >= Math.Abs(dir.Y))
+        {
             return dir.X > 0 ? 1 : 3;
+        }
+
         return dir.Y > 0 ? 2 : 0;
     }
 
@@ -412,15 +484,40 @@ public class PathfinderManager
     #endregion
 
     #region Tipos anidados
-    /// <summary>Estado por monstruo</summary>
-    private class MonsterPathState
+    /// <summary>Estado de pathfinding por monstruo.</summary>
+    private sealed class MonsterPathState
     {
-        public List<Vector2>? Path = null;
-        public HashSet<Point> ClumpTiles = new();
-        public int FramesSinceCalc = 0;
-        public int StuckFrames = 0;
-        public Vector2 LastPosition = Vector2.Zero;
-        public int LastDirection = -1;
+        /// <summary>Ruta A* activa. Null cuando no hay ruta calculada o fue invalidada.</summary>
+        public List<Vector2>? Path { get; set; } = null;
+
+        /// <summary>
+        /// Última ruta A* conocida. Solo se actualiza al encontrar una nueva ruta;
+        /// nunca se borra entre recálculos. Permite que el overlay de depuración
+        /// persista y no parpadee cuando Path es temporalmente null.
+        /// </summary>
+        public List<Vector2>? LastDebugPath { get; set; } = null;
+
+        /// <summary>
+        /// Índice del siguiente waypoint en <see cref="Path"/>.
+        /// Reemplaza el anterior RemoveAt(0): avanzar el índice es O(1)
+        /// frente al O(n) del desplazamiento de todos los elementos de la lista.
+        /// </summary>
+        public int PathIndex { get; set; } = 0;
+
+        /// <summary>Frames desde la última vez que se calculó la ruta. Se usa para aplicar throttling de recálculo.</summary>
+        public int FramesSinceCalc { get; set; } = 0;
+
+        /// <summary>Frames consecutivos sin movimiento detectado. Se usa para detectar atascos y forzar recálculo.</summary>
+        public int StuckFrames { get; set; } = 0;
+
+        /// <summary>Última posición conocida del monstruo en píxeles. Se actualiza cada tick para detectar movimiento.</summary>
+        public Vector2 LastPosition { get; set; } = Vector2.Zero;
+
+        /// <summary>
+        /// Última dirección cardinal aplicada (0=arriba, 1=derecha, 2=abajo, 3=izquierda).
+        /// <para>Se usa para aplicar histéresis de eje y evitar oscilación de dirección.</para>
+        /// </summary>
+        public int LastDirection { get; set; } = -1;
     }
     #endregion
 }

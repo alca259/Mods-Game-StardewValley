@@ -10,6 +10,13 @@ namespace NoMoreStuckMonsters.Pathfinding;
 public static class AStarPathfinder
 {
     /// <summary>
+    /// Límite de radio para buscar un tile alternativo caminable cuando el inicio o destino están bloqueados.
+    /// Evita búsquedas infinitas en mapas muy congestionados. Ajustar conforme a necesidades, pero 8 tiles (128px) suele ser suficiente
+    /// para encontrar un punto de inicio/fin válido en la mayoría de los casos.
+    /// </summary>
+    private const int maxRadius = 8;
+
+    /// <summary>
     /// Calcula una ruta desde <paramref name="fromPixel"/> hasta <paramref name="toPixel"/>
     /// evitando tiles bloqueados. Devuelve null si no existe ruta dentro del límite de nodos.
     /// </summary>
@@ -19,6 +26,7 @@ public static class AStarPathfinder
     /// <param name="maxNodes">Nodos máximos a explorar. Protege los FPS en mapas grandes.</param>
     /// <param name="entityWidth">Ancho del bounding box de la entidad en píxeles.</param>
     /// <param name="entityHeight">Alto del bounding box de la entidad en píxeles.</param>
+    /// <param name="clumpTiles">Set de tiles bloqueados por resource clumps, precalculado externamente.</param>
     /// <returns>Lista de coordenadas de tile (no píxeles) que forman la ruta, o null.</returns>
     public static List<Vector2>? FindPath(
         Vector2 fromPixel,
@@ -38,22 +46,55 @@ public static class AStarPathfinder
         int widthTiles = Math.Max(1, (int)Math.Ceiling(entityWidth / (float)Game1.tileSize));
         int heightTiles = Math.Max(1, (int)Math.Ceiling(entityHeight / (float)Game1.tileSize));
 
+        // Obtenemos la capa Buildings UNA SOLA VEZ para toda la búsqueda.
+        // GetLayer hace una búsqueda por string; llamarla dentro de los bucles de tiles
+        // supone cientos de lookups redundantes por recálculo.
+        var buildingsLayer = location.Map.GetLayer("Buildings");
+
         // Convertir posiciones de centro (píxeles) a coordenadas de tile
         Point start = PixelToTile(fromPixel);
         Point goal = PixelToTile(toPixel);
 
-        if (IsTileBlocked(start, location, widthTiles, heightTiles, clumpTiles))
+        if (IsTileBlocked(
+            tile: start,
+            location: location,
+            widthTiles: widthTiles,
+            heightTiles: heightTiles,
+            clumpTiles: clumpTiles,
+            buildingsLayer: buildingsLayer))
         {
-            var nearestStart = FindNearestWalkableTile(start, goal, location, widthTiles, heightTiles, clumpTiles);
+            var nearestStart = FindNearestWalkableTile(
+                blockedTile: start,
+                towardTile: goal,
+                location: location,
+                widthTiles: widthTiles,
+                heightTiles: heightTiles,
+                clumpTiles: clumpTiles,
+                buildingsLayer: buildingsLayer);
+
             if (nearestStart == null)
                 return null;
 
             start = nearestStart.Value;
         }
 
-        if (IsTileBlocked(goal, location, widthTiles, heightTiles, clumpTiles))
+        if (IsTileBlocked(
+            tile: goal,
+            location: location,
+            widthTiles: widthTiles,
+            heightTiles: heightTiles,
+            clumpTiles: clumpTiles,
+            buildingsLayer: buildingsLayer))
         {
-            var nearestGoal = FindNearestWalkableTile(goal, start, location, widthTiles, heightTiles, clumpTiles);
+            var nearestGoal = FindNearestWalkableTile(
+                blockedTile: goal,
+                towardTile: start,
+                location: location,
+                widthTiles: widthTiles,
+                heightTiles: heightTiles,
+                clumpTiles: clumpTiles,
+                buildingsLayer: buildingsLayer);
+
             if (nearestGoal == null)
                 return null;
 
@@ -74,6 +115,10 @@ public static class AStarPathfinder
 
         openSet.Enqueue(start, Heuristic(start, goal));
 
+        // Vecinos cardinales inline con stackalloc para evitar asignaciones en el heap.
+        // GetNeighbors con array asignaba ~32 bytes por nodo explorado (400 arrays/recálculo).
+        Span<Point> neighbors = stackalloc Point[4];
+
         while (openSet.Count > 0 && explored < maxNodes)
         {
             var current = openSet.Dequeue();
@@ -87,12 +132,44 @@ public static class AStarPathfinder
             if (current == goal)
                 return ReconstructPath(cameFrom, current);
 
-            foreach (var neighbor in GetNeighbors(current, mapWidth, mapHeight))
+            int neighborCount = 0;
+            if (current.X + 1 < mapWidth)
             {
+                neighbors[neighborCount++] = new Point(current.X + 1, current.Y);
+            }
+
+            if (current.X - 1 >= 0)
+            {
+                neighbors[neighborCount++] = new Point(current.X - 1, current.Y);
+            }
+
+            if (current.Y + 1 < mapHeight)
+            {
+                neighbors[neighborCount++] = new Point(current.X, current.Y + 1);
+            }
+
+            if (current.Y - 1 >= 0)
+            {
+                neighbors[neighborCount++] = new Point(current.X, current.Y - 1);
+            }
+
+            for (int ni = 0; ni < neighborCount; ni++)
+            {
+                var neighbor = neighbors[ni];
+
                 if (closedSet.Contains(neighbor))
                     continue;
 
-                if (IsTileBlocked(neighbor, location, widthTiles, heightTiles, clumpTiles)) continue;
+                if (IsTileBlocked(
+                    tile: neighbor,
+                    location: location,
+                    widthTiles: widthTiles,
+                    heightTiles: heightTiles,
+                    clumpTiles: clumpTiles,
+                    buildingsLayer: buildingsLayer))
+                {
+                    continue;
+                }
 
                 float tentativeG = gScore[current] + 1f;
 
@@ -112,13 +189,24 @@ public static class AStarPathfinder
     }
 
     #region Detección de obstáculos
-    /// <summary>Comprueba obstáculos y transitabilidad para toda la huella de la entidad en tiles.</summary>
+    /// <summary>
+    /// Comprueba obstáculos y transitabilidad para toda la huella de la entidad en tiles.
+    /// Recibe la capa Buildings ya resuelta para evitar llamadas repetidas a GetLayer.
+    /// </summary>
     /// <param name="tile">Tile ancla (esquina superior izquierda de la huella).</param>
     /// <param name="location">Localización actual.</param>
     /// <param name="widthTiles">Ancho de huella en tiles.</param>
     /// <param name="heightTiles">Alto de huella en tiles.</param>
+    /// <param name="clumpTiles">Set de tiles de resource clumps precalculado.</param>
+    /// <param name="buildingsLayer">Capa Buildings ya resuelta por el llamador.</param>
     /// <returns>True si cualquier tile de la huella está bloqueado.</returns>
-    private static bool IsTileBlocked(Point tile, GameLocation location, int widthTiles, int heightTiles, HashSet<Point>? clumpTiles)
+    private static bool IsTileBlocked(
+        Point tile,
+        GameLocation location,
+        int widthTiles,
+        int heightTiles,
+        HashSet<Point>? clumpTiles,
+        xTile.Layers.Layer? buildingsLayer)
     {
         int maxX = tile.X + widthTiles - 1;
         int maxY = tile.Y + heightTiles - 1;
@@ -127,8 +215,6 @@ public static class AStarPathfinder
             maxX >= location.Map.Layers[0].LayerWidth ||
             maxY >= location.Map.Layers[0].LayerHeight)
             return true;
-
-        var buildingsLayer = location.Map.GetLayer("Buildings");
 
         for (int x = tile.X; x <= maxX; x++)
         {
@@ -148,7 +234,7 @@ public static class AStarPathfinder
                 if (!location.isTilePassable(tileVec))
                     return true;
 
-                // 4. Resource clumps (rocas/troncos grandes) precalculados por recálculo
+                // 4. Resource clumps (rocas/troncos grandes) precalculados externamente
                 if (clumpTiles != null && clumpTiles.Contains(new Point(x, y)))
                     return true;
             }
@@ -159,31 +245,6 @@ public static class AStarPathfinder
     #endregion
 
     #region Utilidades
-    /// <summary>Devuelve vecinos cardinales válidos dentro de los límites del mapa.</summary>
-    /// <param name="p">Tile actual.</param>
-    /// <param name="mapWidth">Ancho del mapa en tiles.</param>
-    /// <param name="mapHeight">Alto del mapa en tiles.</param>
-    /// <returns>Secuencia de tiles vecinos transitables por límites.</returns>
-    private static IEnumerable<Point> GetNeighbors(Point p, int mapWidth, int mapHeight)
-    {
-        // Solo movimiento cardinal (4 direcciones). Las diagonales añaden precisión
-        // pero aumentan el coste de A* y pueden causar problemas con paredes en esquina.
-        Point[] candidates =
-        {
-            new(p.X + 1, p.Y),
-            new(p.X - 1, p.Y),
-            new(p.X,     p.Y + 1),
-            new(p.X,     p.Y - 1)
-        };
-
-        foreach (var c in candidates)
-        {
-            // Descartar fuera de los límites del mapa
-            if (c.X >= 0 && c.Y >= 0 && c.X < mapWidth && c.Y < mapHeight)
-                yield return c;
-        }
-    }
-
     /// <summary>Heurística Manhattan, adecuada para movimiento en 4 direcciones.</summary>
     private static float Heuristic(Point a, Point b)
         => Math.Abs(a.X - b.X) + Math.Abs(a.Y - b.Y);
@@ -194,6 +255,8 @@ public static class AStarPathfinder
     /// <param name="location">Localización actual.</param>
     /// <param name="widthTiles">Ancho de huella en tiles.</param>
     /// <param name="heightTiles">Alto de huella en tiles.</param>
+    /// <param name="clumpTiles">Set de tiles de resource clumps precalculado.</param>
+    /// <param name="buildingsLayer">Capa Buildings ya resuelta por el llamador.</param>
     /// <returns>Tile alternativo caminable o null si no encuentra candidato.</returns>
     private static Point? FindNearestWalkableTile(
         Point blockedTile,
@@ -201,9 +264,9 @@ public static class AStarPathfinder
         GameLocation location,
         int widthTiles,
         int heightTiles,
-        HashSet<Point>? clumpTiles)
+        HashSet<Point>? clumpTiles,
+        xTile.Layers.Layer? buildingsLayer)
     {
-        const int maxRadius = 8;
         Point? best = null;
         float bestScore = float.MaxValue;
 
@@ -214,9 +277,32 @@ public static class AStarPathfinder
                 int absDx = Math.Abs(dx);
                 int dy = radius - absDx;
 
-                TryCandidate(new Point(blockedTile.X + dx, blockedTile.Y + dy), blockedTile, towardTile, location, widthTiles, heightTiles, clumpTiles, ref best, ref bestScore);
+                TryCandidate(
+                    candidate: new Point(blockedTile.X + dx, blockedTile.Y + dy),
+                    blockedTile: blockedTile,
+                    towardTile: towardTile,
+                    location: location,
+                    widthTiles: widthTiles,
+                    heightTiles: heightTiles,
+                    clumpTiles: clumpTiles,
+                    buildingsLayer: buildingsLayer,
+                    best: ref best,
+                    bestScore: ref bestScore);
+
                 if (dy != 0)
-                    TryCandidate(new Point(blockedTile.X + dx, blockedTile.Y - dy), blockedTile, towardTile, location, widthTiles, heightTiles, clumpTiles, ref best, ref bestScore);
+                {
+                    TryCandidate(
+                        candidate: new Point(blockedTile.X + dx, blockedTile.Y - dy),
+                        blockedTile: blockedTile,
+                        towardTile: towardTile,
+                        location: location,
+                        widthTiles: widthTiles,
+                        heightTiles: heightTiles,
+                        clumpTiles: clumpTiles,
+                        buildingsLayer: buildingsLayer,
+                        best: ref best,
+                        bestScore: ref bestScore);
+                }
             }
         }
 
@@ -230,6 +316,8 @@ public static class AStarPathfinder
     /// <param name="location">Localización actual.</param>
     /// <param name="widthTiles">Ancho de huella en tiles.</param>
     /// <param name="heightTiles">Alto de huella en tiles.</param>
+    /// <param name="clumpTiles">Set de tiles de resource clumps precalculado.</param>
+    /// <param name="buildingsLayer">Capa Buildings ya resuelta por el método previo.</param>
     /// <param name="best">Mejor candidato encontrado hasta el momento.</param>
     /// <param name="bestScore">Puntuación del mejor candidato.</param>
     private static void TryCandidate(
@@ -240,10 +328,11 @@ public static class AStarPathfinder
         int widthTiles,
         int heightTiles,
         HashSet<Point>? clumpTiles,
+        xTile.Layers.Layer? buildingsLayer,
         ref Point? best,
         ref float bestScore)
     {
-        if (IsTileBlocked(candidate, location, widthTiles, heightTiles, clumpTiles))
+        if (IsTileBlocked(candidate, location, widthTiles, heightTiles, clumpTiles, buildingsLayer))
             return;
 
         float distanceFromBlocked = Heuristic(candidate, blockedTile);
