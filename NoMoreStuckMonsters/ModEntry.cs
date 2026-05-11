@@ -27,6 +27,7 @@ public partial class ModEntry : Mod
 {
     #region Fields
     private ModConfig _config = null!;
+    private PerformanceMonitor _perfMonitor = null!;
     private static PathfinderManager _pathfinderManager = default!;
     private readonly Dictionary<int, int> _savedSpeeds = new();
     private readonly Dictionary<int, Vector2> _savedNativePositions = new();
@@ -39,6 +40,7 @@ public partial class ModEntry : Mod
         CommonHelper.RemoveObsoleteFiles(this, "NoMoreStuckMonsters.pdb");
         _config = helper.ReadConfig<ModConfig>();
         _config.EnsureArguments();
+        _perfMonitor = new PerformanceMonitor(() => _config.ShowDebugPath);
         _pathfinderManager = new PathfinderManager();
 
         helper.Events.GameLoop.GameLaunched += OnGameLaunched;
@@ -147,6 +149,8 @@ public partial class ModEntry : Mod
         var player = location.farmers?.FirstOrDefault();
         if (player == null) return;
 
+        _perfMonitor.BeginSample("pathfinding_total");
+
         foreach (var character in location.characters)
         {
             if (character is not Monster monster) continue;
@@ -165,13 +169,18 @@ public partial class ModEntry : Mod
                 monster.Position = previousPosition;
             }
 
+            _perfMonitor.BeginSample("astar_per_monster");
             _pathfinderManager.TryMoveMonster(
                 monster,
                 monster.GetBoundingBox().Center.ToVector2(),
                 player.GetBoundingBox().Center.ToVector2(),
                 location,
                 cfg);
+            _perfMonitor.EndSample("astar_per_monster");
         }
+
+        _perfMonitor.EndSample("pathfinding_total");
+        _perfMonitor.SampleProcessCpu();
 
         _savedSpeeds.Clear();
         _savedNativePositions.Clear();
@@ -228,6 +237,30 @@ public partial class ModEntry : Mod
                     DrawWorldTile(e, tile, fill, border);
                 }
             }
+        }
+
+        DrawCpuUsages(e);
+    }
+
+    /// <summary>Dibuja el uso de CPU del proceso y los tiempos medios de pathfinding en pantalla.</summary>
+    /// <param name="e">Argumentos de render del mundo.</param>
+    private void DrawCpuUsages(RenderedWorldEventArgs e)
+    {
+        var averages = _perfMonitor.Averages;
+        float y = 10f;
+
+        foreach (var entry in averages)
+        {
+            if (entry.Key.EqualsIgnoreCase("cpu", trim: false))
+                continue;
+
+            e.SpriteBatch.DrawString(Game1.smallFont, $"{entry.Key}: {entry.Value:F2} ms", new Vector2(10f, y), Color.White);
+            y += 20f;
+        }
+
+        if (averages.TryGetValue("cpu", out double cpuValue))
+        {
+            e.SpriteBatch.DrawString(Game1.smallFont, $"CPU proceso: {cpuValue:F1}%", new Vector2(10f, y), Color.White);
         }
     }
     #endregion
